@@ -225,6 +225,9 @@ Generate sequence id for all URLs. Each work item - i.e. URL to be processed - w
 
 ```{r par-generate-url-id}
 seq_id_all <- seq_along(1:NROW(tbl_href))
+
+# For dev/testing purposes create a small sequence. For example, a sequence of 1:5 will process first 5 URLs
+# For the final run use seq_along(1:NROW(tbl_href))
 seq_id_all <- seq_along(1:5)
 glimpse(seq_id_all)
 ```
