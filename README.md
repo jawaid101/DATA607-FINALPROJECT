@@ -2,13 +2,20 @@
 
 ## Ideas
 
-1. Scrape Novel Coronavirus (COVID-19) Cases, provided by JHU CSSE: https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_daily_reports_us (Jawaid)
-2. Use parallel processing to efficiently scrape data (Jawaid)
-3. Enrich data - (a) economic indicators (income stats), (b) public policy indicators (school closures, mask/vaccination mandates in school and workplace), (c) demographics (race, gender, age), (d) other (?) (Josh)
+1. Scrape Novel Coronavirus (COVID-19) Cases, provided by JHU CSSE: https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_daily_reports_us. Use parallel processing to efficiently scrape data (Jawaid)
+2. Enrich data - (a) economic indicators (income stats), (b) public policy indicators (school closures, mask/vaccination mandates in school and workplace), (c) demographics (race, gender, age), (d) other (?) (Josh)
 
 
-5. Store data in Spark cluster (Jawaid)
-6. EDA using Spark SQL (Josh and Jawaid)
+3. Store data in Spark cluster (Jawaid)
+4. EDA using Spark SQL (Josh and Jawaid)
+5. EDA ideas
+  > Hypothesis: mask mandates had an impact on infection rates, hispitalizations, and deaths
+  
+  > Hypothesis: school closures had an impact on infection rates, hispitalizations, and deaths
+  
+  > Hypothesis: incomes levels were correlated with infection rates, hispitalizations, and deaths
+  
+  > Hypothesis: race/age/gender were correlated with infection rates, hispitalizations, and deaths
 
 # Milestones
 
