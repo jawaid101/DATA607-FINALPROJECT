@@ -29,6 +29,6 @@
 
 # Artifacts
 
-1. [SparkFunctions.R](https://github.com/himalayahall/DATA607-FINALPROJECT/blob/14f6228fd54b89c72e8ec2ecded07e83998c2912/SparkFunctions.R) - helper functions for connecting with Spark cluster
+1. [SparkFunctions.R](https://github.com/himalayahall/DATA607-FINALPROJECT/blob/14f6228fd54b89c72e8ec2ecded07e83998c2912/SparkFunctions.R) - helper functions for interacting with Spark cluster
 2. [Spark.Rmd](https://github.com/himalayahall/DATA607-FINALPROJECT/blob/14f6228fd54b89c72e8ec2ecded07e83998c2912/Spark.Rmd) - script to demo Spark helper functions
 3. [NovelCoronavirusCases.Rmd](https://github.com/himalayahall/DATA607-FINALPROJECT/blob/14f6228fd54b89c72e8ec2ecded07e83998c2912/NovelCoronavirusCases.Rmd) - script to scrape US data from JHU CSSE, load data into stanalone Spark cluster for EDA
