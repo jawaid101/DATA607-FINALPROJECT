@@ -21,7 +21,7 @@
 # Milestones
 
 - [ ] Project Proposal (Josh)
-- [ ] Acquire enrichment data [Josh] 
+- [ ] Acquire enrichment data (Josh)
 - [X] Create base helper Spark functions (Jawaid)
 - [X] Create base script to scrape JHU CSSE data (Jawaid)
 - [X] Create base script to load data into standalone Spark cluster for EDA (Jawaid)
