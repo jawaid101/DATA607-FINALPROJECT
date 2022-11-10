@@ -253,24 +253,47 @@ cum_results <- bind_rows(work_results)
 glimpse(cum_results)
 ```
 
+# Spark
+
+There are many cloud hosted Spark deployments - e.g. [Databricks Apache Spark](https://www.databricks.com/spark/about) and [AWS EM](https://aws.amazon.com/emr/features/spark/) - but they have very  time-limited free tiers.  
+
+However, we can leverage a standalone Spark cluster as a proof-of-concept. The standalone version provides all the functionality we need to dp Spark based EDAs.
+
+```{r}
+#library(sparklyr)
+
+# Install standalone Spark
+# spark_install("3.3.2)
+```
+
+Load helper Spark functions.
+
 ```{r}
 source("./SparkFunctions.R")
 ```
 
-
+Connect to standalone cluster.
 ```{r}
 sc <- Spark.ConnectLocal()
 ```
 
+Launch Web console to cluster.
 ```{r}
 Spark.Web(sc)
 ```
 
+Copy dataset to Spark cluster.
 ```{r}
 cum_results <- copy_to(sc, cum_results, overwrite = TRUE)
 ```
 
+Look at dataset. Notice, it is loaded from the cluster.
 ```{r}
 glimpse(cum_results)
+```
+
+Disconnect from cluster.
+```{r}
+Spark.Disconnect(sc)
 ```
 
