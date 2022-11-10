@@ -27,7 +27,7 @@
 - [X] Create base script to load data into standalone Spark cluster for EDA (Jawaid)
 - [ ] Load complete JHU CSSE data into Spark cluster (Jawaid)
 - [ ] Load enrichment data into Spark cluster (Josh)
-- [ ] Presentation slide deck using RMarkdown (Josh and Jawaid)
+- [ ] Create presentation slide deck using RMarkdown (Josh and Jawaid)
 - [ ] Presentation (Josh and Jawaid)
 
 # Artifacts
