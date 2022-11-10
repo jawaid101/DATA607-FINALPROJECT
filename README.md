@@ -23,7 +23,7 @@
 - [X] Create  helper Spark functions (Jawaid)
 - [X] Create base script to scrape JHU CSSE data (Jawaid)
 - [X] Create base script to load data into standalone Spark cluster for EDA (Jawaid)
-- [ ] Load full JHU CSSE data into Spark cluster (Jawaid)
+- [ ] Load complete JHU CSSE data into Spark cluster (Jawaid)
 - [ ] Presentation slide deck using RMarkdown (Josh and Jawaid)
 - [ ] Presentation (Josh and Jawaid)
 
