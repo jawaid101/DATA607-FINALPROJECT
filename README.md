@@ -19,7 +19,7 @@
 
 # Milestones
 
-- [ ] Project Proposal (Josh)
+- [ ] ===Project Proposal (Josh)===
 - [X] Create base script to scrape JHU CSSE data (Jawaid)
 - [X] Create base script to load data into standalone Spark cluster for EDA (Jawaid)
 - [ ] Load full JHU CSSE data into Spark cluster (Jawaid)
