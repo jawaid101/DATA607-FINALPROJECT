@@ -21,3 +21,9 @@
 
 1. Project Proposal (Josh)
 2. Presentation (Josh and Jawaid)
+
+# Artifacts
+
+1. SparkFunctions.R - helper functions for connecting with Spark cluster
+2. Spark.Rmd - script to demo Spark helper functions
+3. NovelCoronavirusCases.Rmd - script to scrape US data from JHU CSSE, load intp stanalone Spark cluster for EDA
