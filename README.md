@@ -8,7 +8,8 @@
 
 3. Store data in Spark cluster (Jawaid)
 4. EDA using Spark SQL (Josh and Jawaid)
-5. EDA ideas
+   - There are many cloud hosted Spark deployments - e.g. [Databricks Apache Spark](https://www.databricks.com/spark/about) and [AWS EM](https://aws.amazon.com/emr/features/spark/) - but the free tiers are time-limited. However, we can leverage a standalone Spark cluster as proof-of-concept. The standalone version provides ALL the functionality needed for implementing EDAs leveraging Spark.
+6. EDA ideas
   > Hypothesis: mask mandates had an impact on infection rates, hispitalizations, and deaths
   
   > Hypothesis: school closures had an impact on infection rates, hispitalizations, and deaths
