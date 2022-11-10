@@ -153,7 +153,7 @@ ScrapeStats_USA <- function(...) {
     stats_table <- stats_table %>% 
         select(-'NA') %>%    # first col is named 'NA', remove it
         slice(-1) %>%        # first row contains column names, remove it
-        mutate(Confirmed = as.integer(Confirmed),
+        transmute(Confirmed = as.integer(Confirmed),
                Deaths = as.integer(Deaths),
                Recovered = as.integer(Recovered),
                Active = as.integer(Active),
@@ -197,8 +197,9 @@ Create functions to start/stop local cluster
 StartCluster <- function(verbose = TRUE) {
     num_cluster_nodes <- 1 + (num_cores / 2)
     cluster <- makeCluster(num_cluster_nodes)
-    registersDrvoParallel(cluster)
+    registerDoParallel(cluster)
     print(paste0("Started cluster with ", num_cluster_nodes, " nodes"))
+    return (cluster)
 }
 
 StopCluster <- function(verbose = TRUE) {
@@ -213,7 +214,7 @@ ExportNamespaceToCluster <- function(namespace) {
 
 Start cluster
 ```{r}
-StartCluster()
+cluster <- StartCluster()
 ```
 
 Export namespace to cluster nodes
@@ -252,5 +253,24 @@ cum_results <- bind_rows(work_results)
 glimpse(cum_results)
 ```
 
+```{r}
+source("./SparkFunctions.R")
+```
 
+
+```{r}
+sc <- Spark.ConnectLocal()
+```
+
+```{r}
+Spark.Web(sc)
+```
+
+```{r}
+cum_results <- copy_to(sc, cum_results, overwrite = TRUE)
+```
+
+```{r}
+glimpse(cum_results)
+```
 
