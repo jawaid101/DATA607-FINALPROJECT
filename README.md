@@ -21,10 +21,12 @@
 # Milestones
 
 - [ ] Project Proposal (Josh)
-- [X] Create  helper Spark functions (Jawaid)
+- [ ] Acquire enrichment data [Josh] 
+- [X] Create base helper Spark functions (Jawaid)
 - [X] Create base script to scrape JHU CSSE data (Jawaid)
 - [X] Create base script to load data into standalone Spark cluster for EDA (Jawaid)
 - [ ] Load complete JHU CSSE data into Spark cluster (Jawaid)
+- [ ] Load enrichment data into Spark cluster (Josh)
 - [ ] Presentation slide deck using RMarkdown (Josh and Jawaid)
 - [ ] Presentation (Josh and Jawaid)
 
