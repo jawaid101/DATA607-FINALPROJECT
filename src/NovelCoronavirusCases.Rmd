@@ -29,7 +29,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(RSelenium)
 library(tidyverse)
 library(rvest)
-library(lubridate)
+#library(lubridate)
 ```
 
 # Selenium setup
@@ -50,30 +50,43 @@ rsClient <- rsDrv[["client"]]
 
 # Generate list of data to be processed
 
-Navigate to base URL.
+Create URLs for Global and USA data
 
 ```{r navigate-to-base-url}
-rsClient$navigate("https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_daily_reports_us")
-Sys.sleep(2)
+urlUSA <- "https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_daily_reports_us"
+urlGlobal <- "https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_daily_reports"
+```
+
+Create function to extract elements from target URL.
+
+```{r find-elements-func}
+FindElements <- function(targetUrl) {
+    rsClient$navigate(targetUrl)
+    Sys.sleep(3)
+    css_selector <- "a.js-navigation-open.Link--primary"
+    elems <- rsClient$findElements(using = "css selector", 
+                                   value = css_selector)    
+    return (elems)
+}
 ```
 
 Find elements.
 
 ```{r find-elements}
-css_selector <- "a.js-navigation-open.Link--primary"
-elems <- rsClient$findElements(using = "css selector", 
-                               value = css_selector)
+elems <- FindElements(urlUSA)
 ```
 
 Create tibble with 2 columns - name of CSV file name and HREF.
 
-```{r create-dataframe}
-tbl_href <- tibble(name = character(), href = character())
+```{r create-dataframe-from-elements}
+tbl_href <- tibble(name = character(), href = character(), raw_href = character())
 for (elem in elems) {
     name <- as.character(elem$getElementText())
-    if (tolower(name) != "readme.md") {
-        href = as.character(elem$getElementAttribute("href"))
-        tbl_href <- tbl_href %>% add_row(name = name, href = href)
+    if (tolower(name) != "readme.md" && tolower(name) != ".gitignore") {
+        href <- as.character(elem$getElementAttribute("href"))
+        raw_href <- str_replace(href, "github.com", "raw.githubusercontent.com")
+        raw_href <- str_replace(raw_href, "/blob", "")
+        tbl_href <- tbl_href %>% add_row(name = name, href = href, raw_href = raw_href)
     }
 }
 head(tbl_href, n = 5)
@@ -96,85 +109,123 @@ tbl_href <- tbl_href %>%
 head(tbl_href, n = 5)
 ```
 
-```{r}
-# tbl_href <- tbl_href %>% 
-#     mutate(year = lubridate::year(date),
-#            month = lubridate::month(date), 
-#            day = lubridate::day(date)) %>%
-#     mutate(year = as.integer(year),
-#            month = as.integer(month),
-#            day = as.integer(day))
-# 
-# head(tbl_href, n = 5)
-```
-
 # Setup parallel processing
+
+```{r}
+library(doParallel)
+library(parallel)
+```
 
 Create function that runs on cluster and processes one data item (URL).
 
-```{r par-create-usa-stats-func}
-
-ScrapeStats_USA <- function(...) {
-    
-    # need to load libraries on cluster nodes
+```{r par-table-funcs}
+CleanStatsTable <- function(statsTbl, targetDate) {
     library(tidyverse)
-    library(rvest)
     library(lubridate)
     
-    # get index of URL to process
-    scraped_url_index <- (...)
+    #%data = list(...)
+    cleanedTbl <- statsTbl %>%
+        #select(-'NA') %>%    # first col is named 'NA', remove it
+        #slice(-1) %>%        # first row contains column names, remove it
+        mutate(
+            Confirmed = as.integer(Confirmed),
+            Deaths = as.integer(Deaths),
+            Recovered = as.integer(Recovered),
+            Active = as.integer(Active),
+            FIPS = as.numeric(FIPS),
+            Incident_Rate = as.numeric(Incident_Rate),
+            Case_Fatality_Ratio = as.numeric(Case_Fatality_Ratio),
+            
+            Last_Update = as_datetime(Last_Update)
+        )
     
-    usa_stats_css_selector <- ".js-csv-data"
+    target_year <- lubridate::year(targetDate)
+    target_month <- lubridate::month(targetDate)
+    target_day <- lubridate::day(targetDate)
+
+    cleanedTbl$Year = target_year
+    cleanedTbl$Month = target_month
+    cleanedTbl$Day = target_day
+
+    return (cleanedTbl)
+}
+
+CleanStatsTable.USA <- function(statsTbl, targetDate) {
+    library(tidyverse)
+    library(lubridate)
+
+    #data <- list(...)
     
-    # get URL from exported namespace
-    targetUrl <- tbl_href$href[scraped_url_index]
+    #statsTbl <- data$statsTbl
+    #targetDate <- data$targetDate
     
-    # create traget URL
-    if (! str_starts(targetUrl, "https:")) {
-        if (str_starts(targetUrl, "/")) {
-            targetUrl <- paste0("https://github.com", targetUrl)
-        }
-        else {
-            targetUrl <- paste0("https://github.com/", targetUrl)
-        }
-    }
-    
-    # read from target URL, grab table data
-    stats_table <- read_html(targetUrl) %>% 
-        html_element(css = usa_stats_css_selector) %>%
-        html_table()
-    
-    # first row contains column names
-    first_row <- stats_table[1, ]
-    colnames(stats_table) <- first_row[1,]
-    
-    # 
-    stats_table <- stats_table %>% 
-        select(-'NA') %>%    # first col is named 'NA', remove it
-        slice(-1) %>%        # first row contains column names, remove it
-        transmute(Confirmed = as.integer(Confirmed),
-               Deaths = as.integer(Deaths),
-               Recovered = as.integer(Recovered),
-               Active = as.integer(Active),
-               FIPS = as.numeric(FIPS),
+    cleanedTbl <- CleanStatsTable(statsTbl = statsTbl, targetDate = targetDate)
+    cleanedTbl <- cleanedTbl %>%
+        mutate(
                People_Hospitalized = as.integer(People_Hospitalized),
-               Case_Fatality_Ratio = as.numeric(Case_Fatality_Ratio),
                UID = as.integer(UID),
-               
+
                Date = as.Date(Date),
-               Last_Update = as_datetime(Last_Update),
-               
+
                People_Tested = as.integer(People_Tested),
-               
                Hospitalization_rate = as.numeric(Hospitalization_Rate),
                Mortality_Rate = as.numeric(Mortality_Rate),
                Testing_Rate = as.numeric(Testing_Rate),
-               Incident_Rate = as.numeric(Incident_Rate),
-               Total_Test_Results = as.integer(Total_Test_Results),
+               Total_Test_Results = as.integer(Total_Test_Results)
         )
-    
-    return (stats_table)
+    return (cleanedTbl)
 }
+
+CleanStatsTable.Global <- function(statsTbl, targetDate) {
+    library(tidyverse)
+    library(lubridate)
+
+    cleanedTbl <- CleanStatsTable(statsTbl = stats_tbl, targetDate = targetDate)
+    return (cleanedTbl)    
+}
+
+```
+
+
+```{r par-scrape-funcs}
+ScrapeStats.Global <- function(...) {
+    
+    # need to load libraries on cluster nodes
+    library(tidyverse)
+    library(readr)
+
+    # get index of URL to process
+    url_index <- (...)
+    
+    # get URL from exported namespace
+    targetUrl <- tbl_href$raw_href[url_index]
+    targetDate <- tbl_href$date[url_index]
+    
+    stats_tbl <- readr::read_csv(file = targetUrl)
+    
+    cleanedTbl <- CleanStatsTable.Global(statsTbl = stats_tbl, targetDate = targetDate)
+    return (cleanedTbl)
+}
+
+ScrapeStats.USA <- function(...) {
+    
+    # need to load libraries on cluster nodes
+    library(tidyverse)
+    library(readr)
+
+    # get index of URL to process
+    url_index <- (...)
+    
+    # get URL from exported namespace
+    targetUrl <- tbl_href$raw_href[url_index]
+    targetDate <- tbl_href$date[url_index]
+
+    stats_tbl <- readr::read_csv(file = targetUrl)
+    
+    cleanedTbl <- CleanStatsTable.USA(statsTbl = stats_tbl, targetDate = targetDate)
+    return (cleanedTbl)
+}
+
 ```
 
 Source local cluster functions.
@@ -190,8 +241,8 @@ cr <- Cluster.Start()
 
 Export namespace to cluster nodes
 ```{r export-namespace}
-# Function ScrapeStats_USA will be run on cluster nodes. It will access to tbl_href
-Cluster.ExportNamespace(cr, list('ScrapeStats_USA', 'tbl_href'))
+# Function ScrapeStats.USA will be run on cluster nodes. It will access to tbl_href
+Cluster.ExportNamespace(cr, list('ScrapeStats.USA', 'ScrapeStats.Global', 'CleanStatsTable', 'CleanStatsTable.USA', 'CleanStatsTable.Global', 'tbl_href'))
 ```
 
 Generate sequence id for all URLs. Each work item - i.e. URL to be processed - will be accessed by it's index in `tbl_href` table.
@@ -204,16 +255,17 @@ max_href <- 5
 
 # For dev/testing purposes create a small sequence. For example, a sequence of 1:5 will process first 5 URLs
 # For the final run use seq_along(1:NROW(tbl_href))
-seq_id <- seq(from = start_href, length.out = max_hrefs)
+seq_id <- seq(from = start_href, length.out = max_href)
 glimpse(seq_id)
 ```
 
 Process URLs using cluster (map/reduce)
 ```{r par-process}
-work_result <- Cluster.ParApply(cr, seq_id, ScrapeStats_USA)
+work_results <- Cluster.ParApply(cr, seq_id, ScrapeStats.USA)
 ```
 
-Stop local cluster
+
+Stop  cluster
 
 ```{r}
 Cluster.Stop(cr)
@@ -224,11 +276,6 @@ Combine nested results
 
 ```{r}
 cum_results <- bind_rows(work_results)
-glimpse(cum_results)
-```
-
-Look at dataset.
-```{r}
 glimpse(cum_results)
 ```
 

@@ -71,5 +71,5 @@ Cluster.ParApply <- function(cr, id_seq, func_ref, verbose = TRUE) {
     } else {
         work_results <- c(parLapply(r, id_seq, fun=func_ref))
     }
-    return (work_result)
+    return (work_results)
 }
