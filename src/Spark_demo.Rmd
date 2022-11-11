@@ -72,7 +72,7 @@ summarize_all(cars, mean) %>%
 summarize_all(cars, mean)
 ```
 
-Run correlation across alll njumeric variables.
+Run correlation across all numeric variables.
 
 ```{r}
 ml_corr(cars)
