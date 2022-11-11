@@ -35,7 +35,7 @@ library(lubridate)
 # Selenium setup
 
 Start a selenium server and browser
-```{r}
+```{r start-selenium}
 port <- 4545L
 rsDrv <- rsDriver(browser="firefox", port=port, verbose=F)
 
@@ -44,7 +44,7 @@ Sys.sleep(5)
 ```
 
 Grab  reference to remote client driver
-```{r}
+```{r get-client-ref}
 rsClient <- rsDrv[["client"]]
 ```
 
@@ -52,14 +52,14 @@ rsClient <- rsDrv[["client"]]
 
 Navigate to base URL.
 
-```{r}
+```{r navigate-to-base-url}
 rsClient$navigate("https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_daily_reports_us")
 Sys.sleep(2)
 ```
 
 Find elements.
 
-```{r}
+```{r find-elements}
 css_selector <- "a.js-navigation-open.Link--primary"
 elems <- rsClient$findElements(using = "css selector", 
                                value = css_selector)
@@ -67,7 +67,7 @@ elems <- rsClient$findElements(using = "css selector",
 
 Create tibble with 2 columns - name of CSV file name and HREF.
 
-```{r}
+```{r create-dataframe}
 tbl_href <- tibble(name = character(), href = character())
 for (elem in elems) {
     name <- as.character(elem$getElementText())
@@ -80,14 +80,14 @@ head(tbl_href, n = 5)
 ```
 
 Stop selenium server.
-```{r}
+```{r stop-selenium}
 rsDrv$server$stop()
 ```
 
 
 Add date column.
 
-```{r}
+```{r add-date-col}
 tbl_href <- tbl_href %>% 
     mutate(sdate = str_remove(name, ".csv"), 
            date = as.Date(sdate, "%m-%d-%Y")) %>%
@@ -96,28 +96,27 @@ tbl_href <- tbl_href %>%
 head(tbl_href, n = 5)
 ```
 
-Extract year, month, day into separate columns.
 ```{r}
-tbl_href <- tbl_href %>% 
-    mutate(year = lubridate::year(date),
-           month = lubridate::month(date), 
-           day = lubridate::day(date)) %>%
-    mutate(year = as.integer(year),
-           month = as.integer(month),
-           day = as.integer(day))
-
-head(tbl_href, n = 5)
+# tbl_href <- tbl_href %>% 
+#     mutate(year = lubridate::year(date),
+#            month = lubridate::month(date), 
+#            day = lubridate::day(date)) %>%
+#     mutate(year = as.integer(year),
+#            month = as.integer(month),
+#            day = as.integer(day))
+# 
+# head(tbl_href, n = 5)
 ```
 
 # Setup parallel processing
 
-Function run on cluster nodes to process one data item (URL).
+Create function that runs on cluster and processes one data item (URL).
 
-```{r par-usa-stats}
+```{r par-create-usa-stats-func}
 
 ScrapeStats_USA <- function(...) {
     
-    # need to load libraries on cluster node
+    # need to load libraries on cluster nodes
     library(tidyverse)
     library(rvest)
     library(lubridate)
@@ -180,23 +179,24 @@ ScrapeStats_USA <- function(...) {
 
 Source local cluster functions.
 
-```{r}
+```{r souce-cluster-functions}
 source("./LocalClusterFunctions.R")
 ```
 
 Start cluster
-```{r}
+```{r start-cluster}
 cr <- Cluster.Start()
 ```
 
 Export namespace to cluster nodes
-```{r}
+```{r export-namespace}
+# Function ScrapeStats_USA will be run on cluster nodes. It will access to tbl_href
 Cluster.ExportNamespace(cr, list('ScrapeStats_USA', 'tbl_href'))
 ```
 
-Generate sequence id for all URLs. Each work item - i.e. URL to be processed - will be indentified by it's index in `tbl_href` table.
+Generate sequence id for all URLs. Each work item - i.e. URL to be processed - will be accessed by it's index in `tbl_href` table.
 
-```{r par-generate-url-id}
+```{r generate-url-id}
 
 # Which URLs to process. For full set: start_href = 1, max_hrefs = NROW(tbl_href)
 start_href <- 1
@@ -204,67 +204,34 @@ max_href <- 5
 
 # For dev/testing purposes create a small sequence. For example, a sequence of 1:5 will process first 5 URLs
 # For the final run use seq_along(1:NROW(tbl_href))
-seq_id_all <- seq(from = start_href, length.out = max_hrefs)
-glimpse(seq_id_all)
+seq_id <- seq(from = start_href, length.out = max_hrefs)
+glimpse(seq_id)
 ```
 
-Process URLs using cluster (**map** step of map/reduce))
+Process URLs using cluster (map/reduce)
 ```{r par-process}
-work_result <- Cluster.ParApply(cr, seq_id_all, ScrapeStats_USA)
+work_result <- Cluster.ParApply(cr, seq_id, ScrapeStats_USA)
 ```
 
-Stop cluster
+Stop local cluster
 
 ```{r}
 Cluster.Stop(cr)
 
 ```
 
-Combine nested results (**reduce** step of map/reduce)
+Combine nested results 
 
 ```{r}
 cum_results <- bind_rows(work_results)
 glimpse(cum_results)
 ```
 
-# Spark
-
-There are many cloud hosted Spark deployments - e.g. [Databricks Apache Spark](https://www.databricks.com/spark/about) and [AWS EM](https://aws.amazon.com/emr/features/spark/) - but they have very  time-limited free tiers.  
-
-However, we can leverage a standalone Spark cluster as a proof-of-concept. The standalone version provides all the functionality we need to dp Spark based EDAs.
-
-```{r}
-#library(sparklyr)
-
-# Install standalone Spark
-# spark_install("3.3.2)
-```
-
-Load helper Spark functions.
-
-```{r}
-source("./SparkFunctions.R")
-```
-
-Connect to standalone cluster.
-```{r}
-sc <- Spark.ConnectLocal()
-```
-
-Launch Web console to cluster.
-```{r}
-Spark.Web(sc)
-```
-
-Copy dataset to Spark cluster.
-```{r}
-cum_results <- copy_to(sc, cum_results, overwrite = TRUE)
-```
-
-Look at dataset. Notice, it is loaded from the cluster.
+Look at dataset.
 ```{r}
 glimpse(cum_results)
 ```
+
 
 ```{r save-processed-hrefs}
 save_set <- tbl_href[start_href:max_href, ]
@@ -273,10 +240,5 @@ write_csv(save_set, paste0("./SOURCE/covid_href_", start_href, "_", start_href +
 
 ```{r save-processed-data}
 write_csv(cum_results, paste0("./SOURCE/covid_data_", start_href, "_", start_href + max_href - 1, ".csv"), quote = 'needed')
-```
-
-Disconnect from cluster.
-```{r}
-Spark.Disconnect(sc)
 ```
 

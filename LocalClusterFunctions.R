@@ -3,7 +3,7 @@ library(parallel)
 
 #
 # Start cluster
-# Parameters:
+# Arguments:
 #   verbose: TRUE to report progress
 # Returns:
 #   Cluster reference.
@@ -23,7 +23,7 @@ Cluster.Start <- function(verbose = TRUE) {
 
 #
 # Stop cluster
-# Parameters:
+# Arguments:
 #   cr: cluster reference
 #   verbose: TRUE to report progress
 # Returns:
@@ -38,7 +38,7 @@ Cluster.Stop <- function(cr, verbose = TRUE) {
 
 #
 # Export namespace to cluster
-# Parameters:
+# Arguments:
 #   cr: cluster reference
 #   ns: namespace to export. List of string names. Typically this will be a function and a data 
 #       set: e.g. list(function_name, data_frame). After namespace is exported the function can be
@@ -56,7 +56,7 @@ Cluster.ExportNamespace <- function(cr, ns, verbose = TRUE) {
 
 #
 # Apply function to data across cluster
-# Parameters:
+# Arguments:
 #   cr: cluster reference
 #   id_seq: list of ids to process. Data must have been previously exported to cluster. See Cluster.ExportNamespace
 #   func_ref: function reference. Function must have been previously exported to cluster. See Cluster.ExportNamespace

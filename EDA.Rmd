@@ -1,0 +1,30 @@
+---
+title: "Untitled"
+author: "Jawaid Hakim"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Souce Spark functions
+```{r}
+source("./SparkFunctions.R")
+```
+
+```{r}
+sc <- Spark.ConnectLocal()
+```
+
+
+```{r}
+df <- Spark.ReadCSV(sc, path = "./SOURCE/covid_data_1_5.csv")
+
+```
+
+```{r}
+Spark.Disconnect(sc)
+```
+
