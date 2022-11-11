@@ -123,10 +123,7 @@ CleanStatsTable <- function(statsTbl, targetDate) {
     library(tidyverse)
     library(lubridate)
     
-    #%data = list(...)
     cleanedTbl <- statsTbl %>%
-        #select(-'NA') %>%    # first col is named 'NA', remove it
-        #slice(-1) %>%        # first row contains column names, remove it
         mutate(
             Confirmed = as.integer(Confirmed),
             Deaths = as.integer(Deaths),
@@ -154,11 +151,6 @@ CleanStatsTable.USA <- function(statsTbl, targetDate) {
     library(tidyverse)
     library(lubridate)
 
-    #data <- list(...)
-    
-    #statsTbl <- data$statsTbl
-    #targetDate <- data$targetDate
-    
     cleanedTbl <- CleanStatsTable(statsTbl = statsTbl, targetDate = targetDate)
     cleanedTbl <- cleanedTbl %>%
         mutate(
@@ -267,25 +259,28 @@ work_results <- Cluster.ParApply(cr, seq_id, ScrapeStats.USA)
 
 Stop  cluster
 
-```{r}
+```{r stop-cluster}
 Cluster.Stop(cr)
 
 ```
 
 Combine nested results 
 
-```{r}
+```{r aggregate-results}
 cum_results <- bind_rows(work_results)
 glimpse(cum_results)
 ```
 
 
+Save URLs of processed data
+
 ```{r save-processed-hrefs}
 save_set <- tbl_href[start_href:max_href, ]
-write_csv(save_set, paste0("./SOURCE/covid_href_", start_href, "_", start_href + max_href - 1, ".csv"), quote = 'needed')
+write_csv(save_set, paste0("../data/processed/covid_href_usa_", start_href, "_", start_href + max_href - 1, ".csv"), quote = 'needed')
 ```
 
+Save COVID data
 ```{r save-processed-data}
-write_csv(cum_results, paste0("./SOURCE/covid_data_", start_href, "_", start_href + max_href - 1, ".csv"), quote = 'needed')
+write_csv(cum_results, paste0("../data/processed/covid_data_usa_", start_href, "_", start_href + max_href - 1, ".csv"), quote = 'needed')
 ```
 
