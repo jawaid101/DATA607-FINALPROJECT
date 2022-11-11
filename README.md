@@ -18,6 +18,12 @@
   
   > Hypothesis: race/age/gender were correlated with infection rates, hispitalizations, and deaths
 
+# Folders
+1. data
+   - source: original source data
+   - processed: processed data
+2. src - R source code
+
 # Milestones
 
 - [ ] Project Proposal (Josh)
