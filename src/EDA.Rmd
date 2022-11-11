@@ -9,22 +9,22 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Souce Spark functions
-```{r}
+Source Spark functions
+```{r source-spark-func}
 source("./SparkFunctions.R")
 ```
 
-```{r}
+```{r start-local-spark-cluster}
 sc <- Spark.ConnectLocal()
 ```
 
 
-```{r}
+```{r load-csv}
 df <- Spark.ReadCSV(sc, path = "./SOURCE/covid_data_1_5.csv")
 
 ```
 
-```{r}
+```{r disconnect-from-spark-cluster}
 Spark.Disconnect(sc)
 ```
 
