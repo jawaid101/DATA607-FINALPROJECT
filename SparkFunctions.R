@@ -1,4 +1,3 @@
-library(tidyverse)
 library(sparklyr)
 library(DBI)
 
@@ -29,7 +28,7 @@ Spark.ConnectEdge <- function(master, home = NULL) {
     return (sc)
 }
 
-S# Connect to standalone node in Spark cluster. See https://therinspark.com/connections.html#connections for details.
+# Connect to standalone node in Spark cluster. See https://therinspark.com/connections.html#connections for details.
 # Parameters:
 #   hostname: hostname of standalone cluster.
 #   port: port

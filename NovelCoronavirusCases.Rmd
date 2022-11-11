@@ -178,75 +178,49 @@ ScrapeStats_USA <- function(...) {
 }
 ```
 
-Load parallel processing libraries
-```{r par-load-library}
-library(doParallel)
-library(parallel)
-```
-
-Detect cores.
-
-```{r par-num-cores}
-num_cores <- detectCores(logical = TRUE)
-num_cores
-```
-
-Create functions to start/stop local cluster
+Source local cluster functions.
 
 ```{r}
-StartCluster <- function(verbose = TRUE) {
-    num_cluster_nodes <- 1 + (num_cores / 2)
-    cluster <- makeCluster(num_cluster_nodes)
-    registerDoParallel(cluster)
-    print(paste0("Started cluster with ", num_cluster_nodes, " nodes"))
-    return (cluster)
-}
-
-StopCluster <- function(verbose = TRUE) {
-    stopCluster(cluster)
-    print("Stopped cluster")
-}
-
-ExportNamespaceToCluster <- function(namespace) {
-    clusterExport(cluster, namespace) #list('ScrapeStats_USA', 'tbl_href'))
-}
+source("./LocalClusterFunctions.R")
 ```
 
 Start cluster
 ```{r}
-cluster <- StartCluster()
+cr <- Cluster.Start()
 ```
 
 Export namespace to cluster nodes
 ```{r}
-ExportNamespaceToCluster(list('ScrapeStats_USA', 'tbl_href'))
+Cluster.ExportNamespace(cr, list('ScrapeStats_USA', 'tbl_href'))
 ```
 
 Generate sequence id for all URLs. Each work item - i.e. URL to be processed - will be indentified by it's index in `tbl_href` table.
 
 ```{r par-generate-url-id}
-seq_id_all <- seq_along(1:NROW(tbl_href))
+
+# Which URLs to process. For full set: start_href = 1, max_hrefs = NROW(tbl_href)
+start_href <- 1
+max_href <- 5
 
 # For dev/testing purposes create a small sequence. For example, a sequence of 1:5 will process first 5 URLs
 # For the final run use seq_along(1:NROW(tbl_href))
-seq_id_all <- seq_along(1:5)
+seq_id_all <- seq(from = start_href, length.out = max_hrefs)
 glimpse(seq_id_all)
 ```
 
-Process all URLs using Map/Reduce
+Process URLs using cluster (**map** step of map/reduce))
 ```{r par-process}
-system.time(
-    work_results <- c(parLapply(cluster, seq_id_all, fun=ScrapeStats_USA))
-)
+work_result <- Cluster.ParApply(cr, seq_id_all, ScrapeStats_USA)
 ```
 
-Cluster has finished it's work. Stop cluster
+Stop cluster
+
 ```{r}
-StopCluster()
+Cluster.Stop(cr)
 
 ```
 
-Combine nested results
+Combine nested results (**reduce** step of map/reduce)
 
 ```{r}
 cum_results <- bind_rows(work_results)
@@ -290,6 +264,15 @@ cum_results <- copy_to(sc, cum_results, overwrite = TRUE)
 Look at dataset. Notice, it is loaded from the cluster.
 ```{r}
 glimpse(cum_results)
+```
+
+```{r save-processed-hrefs}
+save_set <- tbl_href[start_href:max_href, ]
+write_csv(save_set, paste0("./SOURCE/covid_href_", start_href, "_", start_href + max_href - 1, ".csv"), quote = 'needed')
+```
+
+```{r save-processed-data}
+write_csv(cum_results, paste0("./SOURCE/covid_data_", start_href, "_", start_href + max_href - 1, ".csv"), quote = 'needed')
 ```
 
 Disconnect from cluster.
