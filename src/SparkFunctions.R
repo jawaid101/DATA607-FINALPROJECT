@@ -79,6 +79,31 @@ Spark.Disconnect <- function(sc, verbose = TRUE) {
 }
 
 #
+# Show Java processes
+#
+Spark.ShowJps <- function() {
+    ps <- system('jps')   
+}
+
+#
+# Kill process on Windows
+# Parameters:
+# pid: process ID
+#
+Spark.KillWindowsPS <- function(pid) {
+    system(paste0('Taskkill /PID ', pid, ' /F'))   
+}
+
+#
+# Kill process on MacOS
+# Parameters:
+# pid: process ID
+#
+Spark.KillWindowsMacOS <- function(pid) {
+    system(paste0('kill -9 ', pid))   
+}
+
+#
 # Launch Web interface to cluster.
 # Arguments:
 #   sc: Spark connection

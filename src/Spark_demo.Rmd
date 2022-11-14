@@ -35,6 +35,10 @@ library(DBI)
 source("SparkFunctions.R")
 ```
 
+```{r}
+source("Consts.R")
+```
+
 Connect to local Spark standalone.
 
 ```{r connect-to-local-master}
@@ -49,38 +53,48 @@ spark_web(sc)
 
 Copy mtcars to cluster.
 
-```{r}
-cars <- copy_to(sc, mtcars, overwrite = TRUE)
+```{r load-multiple-files}
+spark_read_csv(
+  path = "file:///Users/jawaidhakim/Downloads/CUNY/DATA607/DATA607-FINALPROJECT/data/processed/*/*/*.csv",
+  sc = sc, name = "coviddata", header=TRUE, memory = TRUE)
 ```
 
 ```{r}
-select(cars, hp, mpg) %>%
+spark_read_table(sc, name='coviddata')
+```
+
+```{r}
+select(df, Province_State, Date, Year, Month, Day, Confirmed, Deaths, Recovered, Active, Incident_Rate, People_Hospitalized, Case_Fatality_Ratio, Testing_Rate, Hospitalization_Rate) %>%
   sample_n(100) %>%
-  collect() %>%
-  plot()
+  collect() #%>%
+  #plot()
 ```
 
 Run usual R workflows against dataset, no change to syntax but data is in cluster.
 
 ```{r}
-summarize_all(cars, mean) %>%
+summarize_all(df, mean) %>%
   show_query()
 ```
 
 
 ```{r}
-summarize_all(cars, mean)
+summarize_all(df, mean)
 ```
 
 Run correlation across all numeric variables.
 
 ```{r}
-ml_corr(cars)
+# ml_corr(df)
 ```
 
 Disconnect from cluster.
 
 ```{r}
 Spark.Disconnect(sc)
+```
+
+```{r}
+Spark.KillCluster()
 ```
 
