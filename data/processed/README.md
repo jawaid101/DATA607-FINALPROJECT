@@ -1,0 +1,1 @@
+Processed data is stored in hierartical folders: YEAR - MONTH. This structure is selected to make it easy to load data in Spark. It's trivial to load all data or by year or month or day.
