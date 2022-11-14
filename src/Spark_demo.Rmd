@@ -36,7 +36,8 @@ source("SparkFunctions.R")
 ```
 
 ```{r}
-source("Consts.R")
+source("./Consts.R")
+source("./FilePaths.R")
 ```
 
 Connect to local Spark standalone.

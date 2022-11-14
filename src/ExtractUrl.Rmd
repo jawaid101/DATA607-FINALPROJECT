@@ -53,6 +53,7 @@ Create URLs for Global and USA data
 
 ```{r constants}
 source("./Consts.R")
+source("./FilePaths.R")
 ```
 
 Create function to extract elements from target URL.
