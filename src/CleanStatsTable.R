@@ -85,3 +85,21 @@ AddDateComponents <- function(statsTbl, targetDate) {
         
     return (cleanedTbl)
 }
+
+#
+# Clean date columns: mutate from character to date and integer.
+# 
+# Parameters:
+#   statsTbl: stats table
+#
+CleanDateComponents <- function(statsTbl) {
+    library(tidyverse)
+    library(lubridate)
+    
+    cleanedTbl <-  statsTbl |>
+        mutate(Date = as.Date(Date)) |>
+        mutate(Year = as.integer(Year)) |>
+        mutate(Month = as.integer(Month)) |>
+        mutate(Day = as.integer(Day))
+    return(cleanedTbl)
+}

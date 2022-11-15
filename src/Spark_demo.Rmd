@@ -33,7 +33,6 @@ There are excellent cloud hosted Spark services but are either not free or time 
 library(tidyverse)
 library(sparklyr)
 library(DBI)
-library(visdat)
 ```
 
 ```{r}
@@ -68,15 +67,33 @@ sdf
 ```
 
 ```{r convert-to-dataframe-usa}
-df <- sdf_collect(sdf) |> CleanStatsTable.USA()
+df <- sdf_collect(sdf) |> CleanStatsTable.USA() |> CleanDateComponents()
 df
 ```
 
 ```{r visualize-col-types-usa}
+library(visdat)
 df |> 
     sample_n(ifelse(NROW(df) > 5000, 5000, NROW(df))) |> # downsample
     vis_dat(palette = "cb_safe") # color-blind safe 
-pairs(df)
+```
+
+
+```{r}
+library(ggplot2)
+```
+
+
+```{r plot-testing-rate}
+p <- ggplot(df, aes(x = Date, y = Testing_Rate, color = Province_State)) + geom_line()
+ggplotly(p)
+```
+
+
+```{r plot-deaths}
+# Note: states with higher polulation will have higher number of deaths
+p <- ggplot(df, aes(x = Date, y = Deaths, color = Province_State)) + geom_line()
+ggplotly(p)
 ```
 
 Run usual R workflows against dataset, no change to syntax but data is in cluster.
