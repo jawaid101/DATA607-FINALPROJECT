@@ -25,8 +25,8 @@
         |    |    |── DEC
         |    |── 2021
         |    |    |── ...
-        |    ├── summary                     # processed data summary
-        |    |    ├── covid_href_usa.csv     # URLs processed for USA data
-        |    |    ├── covid_ts_usa.csv       # Timestamp of last USA data refresh
-        |    |    ├── covid_href_global.csv  # URLs processed for Global data
-        |    |    ├── covid_ts_global.csv    # Timestamp of last Global data refresh
+        |    ├── summary               # processed data summary
+        |    |    ├── usa_href.csv     # URLs processed for USA data
+        |    |    ├── usa_ts.csv       # Timestamp of last USA data refresh
+        |    |    ├── global_href.csv  # URLs processed for Global data
+        |    |    ├── global_ts.csv    # Timestamp of last Global data refresh
