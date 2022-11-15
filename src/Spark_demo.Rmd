@@ -89,9 +89,13 @@ p <- ggplot(df, aes(x = Date, y = Testing_Rate, color = Province_State)) + geom_
 ggplotly(p)
 ```
 
+```{r plot-incident-rate}
+p <- ggplot(df, aes(x = Date, y = Incident_Rate, color = Province_State)) + geom_line()
+ggplotly(p)
+```
 
 ```{r plot-deaths}
-# Note: states with higher polulation will have higher number of deaths
+# Note: states with higher population will have higher number of deaths
 p <- ggplot(df, aes(x = Date, y = Deaths, color = Province_State)) + geom_line()
 ggplotly(p)
 ```
