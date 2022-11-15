@@ -1,19 +1,15 @@
 CleanStatsTable <- function(statsTbl) {
     library(tidyverse)
- 
+    
     # change column types
-    cleanedTbl <- statsTbl %>%
-        mutate(
-            Confirmed = as.integer(Confirmed),
-            Deaths = as.integer(Deaths),
-            Recovered = as.integer(Recovered),
-            Active = as.integer(Active),
-            FIPS = as.numeric(FIPS),
-            Incident_Rate = as.numeric(Incident_Rate),
-            Case_Fatality_Ratio = as.numeric(Case_Fatality_Ratio),
-            
-            Last_Update = as_datetime(Last_Update)
-        )
+    cleanedTbl <- statsTbl |>
+        mutate(across(
+            c("Confirmed", "Deaths", "Recovered", "Active", "FIPS"),
+            as.integer
+        )) |>
+        mutate(across(c("Incident_Rate",
+                        "Case_Fatality_Ratio"),
+                      as.numeric))
     return (cleanedTbl)
 }
 
@@ -27,16 +23,23 @@ CleanStatsTable <- function(statsTbl) {
 #
 CleanStatsTable.USA <- function(statsTbl) {
     library(tidyverse)
-
+    
     cleanedTbl <- CleanStatsTable(statsTbl = statsTbl)
-    cleanedTbl <- cleanedTbl %>%
-        mutate(
-            Total_Test_Results = as.integer(Total_Test_Results),
-            People_Hospitalized = as.integer(People_Hospitalized),
-            UID = as.integer(UID),
-            Testing_Rate = as.numeric(Testing_Rate),
-            Hospitalization_Rate = as.numeric(Hospitalization_Rate)
-        )
+    cleanedTbl <- cleanedTbl |>
+        mutate(across(
+            c(
+                "Total_Test_Results",
+                "People_Hospitalized",
+                "UID",
+                "Active",
+                "FIPS"
+            ),
+            as.integer
+        )) |>
+        mutate(across(c("Testing_Rate",
+                        "Hospitalization_Rate"),
+                      as.numeric))
+    
     return (cleanedTbl)
 }
 
@@ -69,12 +72,16 @@ AddDateComponents <- function(statsTbl, targetDate) {
     target_month <- lubridate::month(targetDate)
     target_day <- lubridate::day(targetDate)
     
-    # add date/year/month/dat columns
-    cleanedTbl <-  cleanedTbl %>%
-        mutate(Date = targetDate, .after = Country_Region) %>%
-        mutate(Year = target_year, .after = Date) %>%
-        mutate(Month = target_month, .after = Year) %>%
-        mutate(Day = target_day, .after = Month)
-    
+    # add date/year/month/day columns
+    cleanedTbl <-  statsTbl |>
+        mutate(Date = targetDate) |>
+        mutate(Year = target_year) |>
+        mutate(Month = target_month) |>
+        mutate(Day = target_day) |>
+        relocate(Date, .after = Country_Region) |>
+        relocate(Year, .after = Date) |>
+        relocate(Month, .after = Year) |>
+        relocate(Day, .after = Month)
+        
     return (cleanedTbl)
 }
