@@ -3,7 +3,7 @@ CleanStatsTable <- function(statsTbl) {
  
     # change column types
     cleanedTbl <- statsTbl %>%
-        transmute(
+        mutate(
             Confirmed = as.integer(Confirmed),
             Deaths = as.integer(Deaths),
             Recovered = as.integer(Recovered),
@@ -30,7 +30,7 @@ CleanStatsTable.USA <- function(statsTbl) {
 
     cleanedTbl <- CleanStatsTable(statsTbl = statsTbl)
     cleanedTbl <- cleanedTbl %>%
-        transmute(
+        mutate(
             Total_Test_Results = as.integer(Total_Test_Results),
             People_Hospitalized = as.integer(People_Hospitalized),
             UID = as.integer(UID),

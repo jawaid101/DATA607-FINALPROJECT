@@ -158,7 +158,7 @@ Generate sequence id for all URLs. Each work item - i.e. URL to be processed - w
 
 # Which URLs to process. For full set: start_href = 1, max_hrefs = NROW(tbl_href)
 start_href <- 1
-max_href <- 2
+max_href <- 50
 
 # For dev/testing purposes create a small sequence. For example, a sequence of 1:5 will process first 5 URLs
 # For the final run use seq_along(1:NROW(tbl_href))
@@ -168,7 +168,7 @@ glimpse(seq_id)
 
 Process URLs using cluster (map/reduce)
 ```{r par-process}
-work_results <- Cluster.ParApply(cr, seq_id, ScrapeStats.USA)
+system.time(work_results <- Cluster.ParApply(cr, seq_id, ScrapeStats.USA))
 work_results
 ```
 

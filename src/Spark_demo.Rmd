@@ -23,6 +23,10 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Local Spark installation
+
+There are excellent cloud hosted Spark services but are either not free or time limited. A local Spark installation is great for dev/test. You will need to install Java, Python, PySpark, and (optional) Scala. Here are [instructions](https://sparkbyexamples.com/pyspark) on how to install Spark on your local machine.
+
 # Load library
 
 ```{r}
