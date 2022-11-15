@@ -2,20 +2,30 @@
 
     ├── data    
         ├── source            # original source data
-        |    ├── processed    # processed data, hierarchical folders for easy loading into Spark: ./processed/[YEAR]/[MONTH]/
-        |    |    |── 2019
-        |    |    |    |── JAN
-        |    |    |    |── FEB
+        |    |── README.md
+        |    |── cdc_data.csv
+        |    |── irs_data.csv
+        |    |── covid-vaccine-willingness-and-people-vaccinated-by-country.csv
+        |    |── face-covering-policies-covid.csv
+        |── processed          # processed data, hierarchical folders for easy Spark loading: ./processed/[YEAR]/[MONTH]/
+        |    |── README.md
+        |    |── 2019
+        |    |    |── JAN
+        |    |    |    |── usa_2019-01-01    # usa data for Jan 1, 2019
+        |    |    |    |── usa_2019-01-02
+        |    |    |    |── global-2019-01-05 # global data for Jan 5, 2019
         |    |    |    |── ...
-        |    |    |    |── DEC
-        |    |    |── 2020
-        |    |    |    |── JAN
-        |    |    |    |── FEB
-        |    |    |    |── ...
-        |    |    |    |── DEC
-        |    |    |── 2021
-        |    |    |    |── ...
-        |    ├── summary                      # processed data summary
+        |    |    |── FEB
+        |    |    |── ...
+        |    |    |── DEC
+        |    |── 2020
+        |    |    |── JAN
+        |    |    |── FEB
+        |    |    |── ...
+        |    |    |── DEC
+        |    |── 2021
+        |    |    |── ...
+        |    ├── summary                     # processed data summary
         |    |    ├── covid_href_usa.csv     # URLs processed for USA data
         |    |    ├── covid_ts_usa.csv       # Timestamp of last USA data refresh
         |    |    ├── covid_href_global.csv  # URLs processed for Global data
