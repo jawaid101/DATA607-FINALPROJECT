@@ -1,3 +1,7 @@
+# Dynamic financial data
+
+[yRf](https://ropensci.org/blog/2022/07/26/package-yfr/) might allow us to compare S&P 500 performance against COVID data.
+
 # Directory layout
 
     ├── data    
