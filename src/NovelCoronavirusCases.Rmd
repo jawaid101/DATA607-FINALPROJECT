@@ -43,13 +43,13 @@ library(doParallel)
 library(parallel)
 ```
 
-Create functions that run on Spark cluster and processes one data item (URL).
+Create data extraction functions to run on Spark cluster for processing COVID stats.
 
 ```{r par-table-funcs}
 #
 # Clean stats table
 # Parameters:
-#   statsTbl: stats tbale
+#   statsTbl: stats table
 #   targetDate: stats table date
 #
 # Returns:
@@ -59,6 +59,7 @@ CleanStatsTable <- function(statsTbl, targetDate) {
     library(tidyverse)
     library(lubridate)
     
+    # change column types
     cleanedTbl <- statsTbl %>%
         mutate(
             Confirmed = as.integer(Confirmed),
@@ -76,6 +77,7 @@ CleanStatsTable <- function(statsTbl, targetDate) {
     target_month <- lubridate::month(targetDate)
     target_day <- lubridate::day(targetDate)
     
+    # add date/year/month/dat columns
     cleanedTbl <-  cleanedTbl %>%
         mutate(Date = targetDate, .after = Country_Region) %>%
         mutate(Year = target_year, .after = Date) %>%
@@ -88,7 +90,7 @@ CleanStatsTable <- function(statsTbl, targetDate) {
 #
 # Clean USA stats table
 # Parameters:
-#   statsTbl: stats tbale
+#   statsTbl: stats table
 #   targetDate: stats table date
 #
 # Returns:
@@ -101,18 +103,10 @@ CleanStatsTable.USA <- function(statsTbl, targetDate) {
     cleanedTbl <- CleanStatsTable(statsTbl = statsTbl, targetDate = targetDate)
     cleanedTbl <- cleanedTbl %>%
         mutate(
-            Confirmed = as.integer(Confirmed),
-            Deaths = as.integer(Deaths),
-            Recovered = as.integer(Recovered),
-            Active = as.integer(Active),
-            Incident_Rate = as.numeric(Incident_Rate),
-
             Total_Test_Results = as.integer(Total_Test_Results),
             People_Hospitalized = as.integer(People_Hospitalized),
-            Case_Fatality_Ratio = as.numeric(Case_Fatality_Ratio),
             UID = as.integer(UID),
             Testing_Rate = as.numeric(Testing_Rate),
-            
             Hospitalization_Rate = as.numeric(Hospitalization_Rate)
         )
     return (cleanedTbl)
@@ -121,7 +115,7 @@ CleanStatsTable.USA <- function(statsTbl, targetDate) {
 #
 # Clean Global stats table
 # Parameters:
-#   statsTbl: stats tbale
+#   statsTbl: stats table
 #   targetDate: stats table date
 #
 # Returns:
@@ -138,6 +132,24 @@ CleanStatsTable.Global <- function(statsTbl, targetDate) {
 
 
 ```{r par-scrape-funcs}
+
+ScrapeStats <- function(url_index) {
+    
+    # need to load libraries on cluster nodes
+    library(tidyverse)
+    library(readr)
+
+    source("./Consts.R", local = TRUE)
+
+    # get URL and date from exported namespace
+    targetUrl <- tbl_href$raw_href[url_index]
+    targetDate <- tbl_href$date[url_index]
+
+    stats_tbl <- readr::read_csv(file = targetUrl)
+    
+    return (stats_tbl)    
+}
+
 #
 # Scrape Global stats table
 # Parameters:
@@ -148,20 +160,14 @@ CleanStatsTable.Global <- function(statsTbl, targetDate) {
 #
 ScrapeStats.Global <- function(...) {
     
-    # need to load libraries on cluster nodes
     library(tidyverse)
-    library(readr)
-    
-    source("./Consts.R", local = TRUE)
-    
+    source("./FilePaths.R", local = TRUE)
+
     # get index of URL to process
     url_index <- (...)
-    
-    # get URL and date from exported namespace
-    targetUrl <- tbl_href$raw_href[url_index]
     targetDate <- tbl_href$date[url_index]
     
-    stats_tbl <- readr::read_csv(file = targetUrl)
+    stats_tbl <- ScrapeStats(url_index)
     
     cleanedTbl <- CleanStatsTable.Global(statsTbl = stats_tbl, targetDate = targetDate)
     
@@ -181,25 +187,20 @@ ScrapeStats.Global <- function(...) {
 #
 ScrapeStats.USA <- function(...) {
     
-    # need to load libraries on cluster nodes
     library(tidyverse)
-    library(readr)
+    source("./FilePaths.R", local = TRUE)
 
-    source("./Consts.R", local = TRUE)
-
-        # get index of URL to process
+    # get index of URL to process
     url_index <- (...)
-    
-    # get URL and date from exported namespace
-    targetUrl <- tbl_href$raw_href[url_index]
     targetDate <- tbl_href$date[url_index]
-
-    stats_tbl <- readr::read_csv(file = targetUrl)
+    
+    stats_tbl <- ScrapeStats(url_index)
     
     cleanedTbl <- CleanStatsTable.USA(statsTbl = stats_tbl, targetDate = targetDate)
     
     path <- Output.GetDataFilePath(targetDate = targetDate, global = FALSE)
     write_csv(cleanedTbl, file = path, quote = 'needed')
+    
     return (url_index)
 }
 
@@ -226,7 +227,7 @@ tbl_href
 Export namespace to cluster nodes
 ```{r export-namespace}
 # Function ScrapeStats.USA will be run on cluster nodes. It will access to below namespaces
-Cluster.ExportNamespace(cr, list('ScrapeStats.USA', 'ScrapeStats.Global', 'CleanStatsTable', 'CleanStatsTable.USA', 'CleanStatsTable.Global', 'tbl_href'))
+Cluster.ExportNamespace(cr, list('ScrapeStats', 'ScrapeStats.USA', 'ScrapeStats.Global', 'CleanStatsTable', 'CleanStatsTable.USA', 'CleanStatsTable.Global', 'tbl_href'))
 ```
 
 Generate sequence id for all URLs. Each work item - i.e. URL to be processed - will be accessed by it's index in `tbl_href` table.
