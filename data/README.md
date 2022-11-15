@@ -11,6 +11,10 @@
         |    |── README.md
         |    |── 2019
         |    |    |── JAN
+        |    |    |    |── usa_2019-01-01    # usa data for Jan 1, 2019
+        |    |    |    |── usa_2019-01-02
+        |    |    |    |── global-2019-01-05 # global data for Jan 5, 2019
+        |    |    |    |── ...
         |    |    |── FEB
         |    |    |── ...
         |    |    |── DEC
