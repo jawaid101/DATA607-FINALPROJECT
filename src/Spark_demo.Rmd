@@ -71,8 +71,8 @@ df
 
 ```{r visualize-col-types-usa}
 df |> 
-    sample_n(ifelse(NROW(df) > 1000, 1000, NROW(df))) |>
-    vis_dat(palette = "cb_safe")
+    sample_n(ifelse(NROW(df) > 1000, 1000, NROW(df))) |> # downsample
+    vis_dat(palette = "cb_safe") # color-blind safe 
 ```
 
 Run usual R workflows against dataset, no change to syntax but data is in cluster.
