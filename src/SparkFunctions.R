@@ -81,7 +81,7 @@ Spark.Disconnect <- function(sc, verbose = TRUE) {
 #
 # Show Java processes
 #
-Spark.ShowJps <- function() {
+Spark.ShowJPS <- function() {
     ps <- system('jps')   
 }
 
@@ -90,7 +90,7 @@ Spark.ShowJps <- function() {
 # Parameters:
 # pid: process ID
 #
-Spark.KillWindowsPS <- function(pid) {
+Spark.KillOnWindows <- function(pid) {
     system(paste0('Taskkill /PID ', pid, ' /F'))   
 }
 
@@ -99,7 +99,8 @@ Spark.KillWindowsPS <- function(pid) {
 # Parameters:
 # pid: process ID
 #
-Spark.KillWindowsMacOS <- function(pid) {
+
+Spark.KillOnMacOS <- function(pid) {
     system(paste0('kill -9 ', pid))   
 }
 

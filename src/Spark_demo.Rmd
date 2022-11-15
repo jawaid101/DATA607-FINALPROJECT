@@ -68,15 +68,15 @@ sdf
 ```
 
 ```{r convert-to-dataframe-usa}
-df <- sdf |> collect()
-df <- CleanStatsTable.USA(df)
+df <- sdf_collect(sdf) |> CleanStatsTable.USA()
 df
 ```
 
 ```{r visualize-col-types-usa}
 df |> 
-    sample_n(ifelse(NROW(df) > 1000, 1000, NROW(df))) |> # downsample
+    sample_n(ifelse(NROW(df) > 5000, 5000, NROW(df))) |> # downsample
     vis_dat(palette = "cb_safe") # color-blind safe 
+pairs(df)
 ```
 
 Run usual R workflows against dataset, no change to syntax but data is in cluster.
@@ -104,6 +104,6 @@ Spark.Disconnect(sc)
 ```
 
 ```{r}
-Spark.KillCluster()
+Spark.ShowJps()
 ```
 
