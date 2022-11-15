@@ -2,7 +2,7 @@ library(tidyverse)
 library(lubridate)
 
 DB.PATH <- "../data/processed/"
-DB.SUMMARY_PATH <- '../data/summary/'
+DB.SUMMARY_PATH <- '../data/processed/summary/'
 
 #DB.DATA_FILE_USA <- "covid_data_usa"
 DB.HREF_FILE_USA <- "covid_href_usa"

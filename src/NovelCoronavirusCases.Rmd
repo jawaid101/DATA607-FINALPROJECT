@@ -225,7 +225,7 @@ tbl_href
 
 Export namespace to cluster nodes
 ```{r export-namespace}
-# Function ScrapeStats.USA will be run on cluster nodes. It will access to tbl_href
+# Function ScrapeStats.USA will be run on cluster nodes. It will access to below namespaces
 Cluster.ExportNamespace(cr, list('ScrapeStats.USA', 'ScrapeStats.Global', 'CleanStatsTable', 'CleanStatsTable.USA', 'CleanStatsTable.Global', 'tbl_href'))
 ```
 
@@ -250,15 +250,13 @@ work_results
 ```
 
 Stop  cluster
-
 ```{r stop-cluster}
 Cluster.Stop(cr)
 
 ```
 
-Combine nested results 
 
-```{r aggregate-results}
+```{r echo=FALSE aggregate-results}
 #cum_results <- bind_rows(work_results)
 
 # sort by descending date order
@@ -268,21 +266,18 @@ Combine nested results
 ```
 
 
-Save URLs of processed data
-
-```{r save-processed-hrefs}
+```{r echo = FALSE save-processed-hrefs}
 # save_set <- tbl_href[start_href:max_href, ]
 # full_path <- Output.GetFullPath('href', global = FALSE)
 # write_csv(save_set, full_path, quote = 'needed')
 ```
 
-Save COVID data
-```{r save-processed-data}
+```{r echo=FALSE save-processed-data}
 # full_path <- Output.GetFullPath('data', global = FALSE)
 # write_csv(cum_results, full_path, quote = 'needed')
 ```
 
-```{r}
+```{r echo=FALSE save-timestamp}
 # full_path <- Output.GetFullPath('ts', global = FALSE)
 # d <- format(date(), '%Y-%m-%d')
 # write_file(s, full_path)
