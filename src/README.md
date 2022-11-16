@@ -13,4 +13,4 @@ Contains code that is shared by the data extraction and EDA scripts (see below)
 ## Data extraction and EDA
 
 1. NovelCoronavirusCases.Rmd - extracts data from JHSS Githup using local cluster for high performance
-2. Spark_demo.Rmd - script to demo EDA using Spark. May be used to jumpstart EDA. Sample plot is 
+2. Spark_demo.Rmd - script to demo EDA using Spark. May be used to jumpstart EDA. Sample plot is [here](https://github.com/himalayahall/DATA607-FINALPROJECT/blob/master/src/Rplot.png)
