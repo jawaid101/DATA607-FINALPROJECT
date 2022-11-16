@@ -7,9 +7,12 @@ CleanStatsTable <- function(statsTbl) {
             c("Confirmed", "Deaths", "Recovered", "Active", "FIPS"),
             as.integer
         )) |>
-        mutate(across(c("Incident_Rate",
-                        "Case_Fatality_Ratio"),
-                      as.numeric))
+        mutate(across(
+            c("Incident_Rate",
+              "Case_Fatality_Ratio",
+              "Long_", "Lat"),
+            as.numeric
+        ))
     return (cleanedTbl)
 }
 
