@@ -1,6 +1,30 @@
+CleanTSTable <- function(tsTbl) {
+    cleanedTbl <- tsTbl |>
+        mutate(across(contains(c("Lat", "Long")), as.integer)) |>
+        mutate(across(contains(
+            c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
+        ), as.numeric)) #|>
+     return (cleanedTbl)
+}
+
+CleanTSTable.Global <- function(tsTbl) {
+    cleanedTbl <- CleanTSTable(tsTbl = tsTbl)
+    return (cleanedTbl)
+}
+
+CleanTSTable.USA <- function(tsTbl) {
+    
+    cleanedTbl <- CleanTSTable(tsTbl = tsTbl)
+    
+    cleanedTbl <- cleanedTbl |>
+        mutate(across(contains(c("Combined, Population")), as.numeric))
+    
+    return (cleanedTbl)
+}
+
 CleanStatsTable <- function(statsTbl) {
     library(tidyverse)
-    
+
     # change column types
     cleanedTbl <- statsTbl |>
         mutate(across(
@@ -52,6 +76,7 @@ CleanStatsTable.Global <- function(statsTbl) {
     cleanedTbl <- CleanStatsTable(statsTbl = statsTbl)
     return (cleanedTbl)    
 }
+
 
 #
 # Add date components (date, year, month, day) to stats table

@@ -33,6 +33,7 @@ There are excellent cloud hosted Spark services but are either not free or time 
 library(tidyverse)
 library(sparklyr)
 library(DBI)
+library(assertive)
 ```
 
 ```{r}
@@ -57,34 +58,82 @@ Display web console.
 spark_web(sc)
 ```
 
-```{r define-data-category}
-is_global_data <- FALSE
-```
-
-
-```{r define-file-prefix-all}
-file_prefix <- 'usa'
-if (is_global_data) {
-    file_prefix <- 'global'
-}
-file_prefix
-```
-
 
 ```{r load-category-csv-files}
-sdf <- spark_read_csv(
-    path = paste0(
-        "file:///Users/jawaidhakim/Downloads/CUNY/DATA607/DATA607-FINALPROJECT/data/processed/*/*/",
-        file_prefix,
-        "-*.csv"
-    ),
-    sc = sc,
-    name = "coviddata",
-    header = TRUE,
-    memory = TRUE
-)
-sdf_dim(sdf)
-sdf
+GetFileRegexp <- function(dataFreq = '2pm', is_global_data = FALSE, verbose = TRUE) {
+    n <- as.integer(str_replace(dataFreq, "pm", ""))
+    file_regexp <- switch(
+        n,
+        c('*-*-15'),
+        c('*-*-15', '*-*-25'),
+        c('*-*-09', '*-*-18', '*-*-25'),
+        c('*-*-05', '*-*-12', '*-*-20', '*-*-27')
+    )
+    
+    
+    assert_is_not_null(file_regexp, "stop")
+    
+    file_prefix <- 'usa'
+    if (is_global_data) {
+        file_prefix <- 'global'
+    }
+    
+    if (verbose) {
+        print(paste0("File regexp: ", file_regexp))
+    }
+    
+    return (paste0(file_prefix, "-", file_regexp))    
+}
+
+#
+# Load data into Spark.
+#
+# Parameters:
+#   dataFreq : Data frequency: c('1pm', '2pm', '3pm', '4pm') for 1, 2 (default), 3, or 4 samples per month
+#   global: TRUE for global dataset, FALSE for USA (default)
+LoadDataset <- function(dataFreq = '2pm', global = FALSE, verbose = TRUE) {
+    file_regexp <- GetFileRegexp(dataFreq, global, verbose)
+    full_sdf <- NULL
+    for (r in file_regexp) {
+        full_regexp <- paste0(
+            "file:///Users/jawaidhakim/Downloads/CUNY/DATA607/DATA607-FINALPROJECT/data/processed/*/*/",
+            r,
+            ".csv"
+        )
+        
+        if (verbose) {
+            print(paste0("Loading data from: ", full_regexp))
+        }
+        
+        sdf <- spark_read_csv(
+            full_regexp,
+            sc = sc,
+            name = "coviddata",
+            header = TRUE,
+            memory = TRUE
+        )
+        
+        if (is.null(full_sdf)) {
+            full_sdf <- sdf
+        } else {
+            full_sdf = sdf_bind_rows(full_sdf, sdf)
+        }
+    }
+   
+    sdf_dim(full_sdf)
+    return (full_sdf)
+}
+```
+
+Select between USA or Global data
+
+```{r define-data-category}
+is_global_data <- TRUE
+```
+
+
+```{r}
+sdf <- LoadDataset(dataFreq = '1pm',  global = is_global_data, verbose = TRUE)
 ```
 
 Mutate column data types
@@ -105,24 +154,26 @@ df <- sdf_collect(sdf)
 df
 ```
 
+
 ```{r visualize-col-types-usa}
 library(visdat)
 df |>
     sample_n(ifelse(NROW(df) > 5000, 5000, NROW(df))) |> # downsample
-    vis_dat(palette = "cb_safe") # color-blind safe 
+    vis_dat() # color-blind safe 
 ```
 
 
 ```{r}
 library(ggplot2)
+library(plotly)
 ```
 
 
 ```{r plot-testing-rate}
 p <- NULL
 if (is_global_data) {
-    # p <-
-    #     ggplot(df, aes(x = Date, y = Testing_Rate, color = Country_Region)) + geom_line()
+    p <-
+        ggplot(df, aes(x = Date, y = Testing_Rate, color = Country_Region)) + geom_line()
 } else {
     p <-
         ggplot(df, aes(x = Date, y = Testing_Rate, color = Province_State)) + geom_line()
@@ -135,9 +186,9 @@ if (is_global_data) {
 # Note: states with higher population will have higher number of deaths
 p <- NULL
 if (is_global_data) {
-    # p <-
-    #     ggplot(df, aes(x = Date, y = Deaths, color = Country_Region)) + geom_line()
-    # ggplotly(p)
+    p <-
+        ggplot(df, aes(x = Date, y = Deaths, color = Country_Region)) + geom_line()
+    ggplotly(p)
 } else {
     p <-
         ggplot(df, aes(x = Date, y = Deaths, color = Province_State)) + geom_line()
@@ -154,27 +205,35 @@ if (is_global_data) {
         filter(!is.na(Lat)) |>
         filter(!is.na(Long_)) |>
         group_by(Country_Region) |>
-        filter(Deaths == max(Deaths)) |>     # pick out greatest death count
-        select(Province_State, Lat, Long_, Deaths) |>
-        unique()  # keep one unique max death row       
+        slice(which.max(Deaths)) |>
+        mutate(TotalDeaths = Deaths) |>
+        select(Province_State, Country_Region, Lat, Long_, Deaths, TotalDeaths)
+        #distinct(Province_State, Country_Region) |>
+
 } else {
     df1 <- df |>
         filter(!is.na(Lat)) |>
         filter(!is.na(Long_)) |>
         group_by(Province_State) |>
-        filter(Deaths == max(Deaths)) |>     # pick out greatest death count
-        select(Province_State, Lat, Long_, Deaths) |>
+        filter(Deaths == cumsum(Deaths)) |> 
+        select(Province_State, Country_Region, Lat, Long_, Deaths) |>
         unique()
 }
+```
 
-max_deaths <- max(df1$Deaths)
+```{r}
+
+max_deaths <- max(df1$TotalDeaths)
 df1 <-
-    df1 |> mutate(scaled_tot_deaths = Deaths / max_deaths, .after = Deaths)
+    df1 |> 
+    mutate(scaled_tot_deaths = TotalDeaths / max_deaths, .after = Deaths) |>
+    mutate(across(matches(c("Lat", "Long_")), as.numeric))
+    
 df1_low <- df1 |> filter(scaled_tot_deaths < 0.5)
 df1_high <- df1 |> filter(scaled_tot_deaths >= 0.5
 )
-```
 
+```
 
 ```{r}
 library(leaflet)
@@ -190,7 +249,7 @@ if (is_global_data) {
         leaflet::addCircleMarkers(
             lng = ~ Long_,
             lat = ~ Lat,
-            label = ~ paste0(Country_Region, ", Deaths: ", Deaths),
+            label = ~ paste0(Country_Region, ", ", Province_State, " Deaths: ", Deaths),
             color = 'red',
             radius = ~ scaled_tot_deaths * 10
         ) |>

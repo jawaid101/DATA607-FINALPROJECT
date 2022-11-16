@@ -1,3 +1,5 @@
+library(assertive)
+
 source('./Consts.R')
 
 #
@@ -54,4 +56,17 @@ Output.GetDataFilePath <- function(targetDate, global = FALSE) {
     
     return (paste0(DB.PATH, target_year, "/", target_month, "/", file_name, ".csv"))
 }
+
+Output.GetTimeSeriesFilePath <- function(ts_type, global) {
+    assert_any_are_matching_fixed(ts_type, c("deaths", "confirmed"))
+    file_name <- NULL
+    if (global) {
+        file_name <- paste0('time_series_covid19_', ts_type, '_global')
+    }
+    else {
+        file_name <- paste0('time_series_covid19_', ts_type, '_US')
+    }
+    return (paste0(DB.TIME_SERIES_PATH, file_name, ".csv"))
+}
+
 
