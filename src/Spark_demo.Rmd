@@ -86,7 +86,7 @@ LoadTimeSeriesDataset <- function(ts_type, keep_latest, global = FALSE, verbose 
     df <- rename(df, 'Country_Region' = 'Country/Region')
     
     # pivot longer on date columns
-    df <- ds |>
+    df <- df |>
         pivot_longer(contains('/'), names_to = 'date', values_to = ts_type)
     
     # mutate date type
@@ -145,12 +145,11 @@ GetDailyFileRegexp <- function(dataFreq = '2pm', is_global_data = FALSE, verbose
 LoadDailyDataset <- function(dataFreq = '2pm', global = FALSE, verbose = TRUE) {
     file_regexp <- GetDailyFileRegexp(dataFreq, global, verbose)
     full_sdf <- NULL
+    cwd <- getwd()
     for (r in file_regexp) {
-        full_regexp <- paste0(
-            "file:///Users/jawaidhakim/Downloads/CUNY/DATA607/DATA607-FINALPROJECT/data/processed/*/*/",
-            r,
-            ".csv"
-        )
+        full_regexp <- paste0("file:///", cwd, "../data/processed/*/*/",
+                              r,
+                              ".csv")
         
         if (verbose) {
             print(paste0("Loading data from: ", full_regexp))
@@ -170,7 +169,7 @@ LoadDailyDataset <- function(dataFreq = '2pm', global = FALSE, verbose = TRUE) {
             full_sdf = sdf_bind_rows(full_sdf, sdf)
         }
     }
-   
+    
     sdf_dim(full_sdf)
     return (full_sdf)
 }
@@ -219,7 +218,6 @@ library(ggplot2)
 library(plotly)
 ```
 
-
 Run usual R workflows against dataset, no change to syntax but data is in cluster.
 
 ```{r}
@@ -236,17 +234,24 @@ Run usual R workflows against dataset, no change to syntax but data is in cluste
 ```{r}
 library(leaflet)
 library(leaflet.extras)
+library(leaflet.providers)
 ```
 
 
 ```{r}
 
-# to use leaflet we have to use R dataframe (canot use Spark)
-system.time(df1 <- sdf_collect(sdf))
+# Have not investigated using Leaflet directly with Spark (does not work on first try), we have create R dataframe
+system.time(df1 <-
+                sdf_collect(sdf))    # collect Speak dataframe ion R dataframe
+
 m <- NULL
 if (is_global_data) {
-    m <- leaflet::leaflet(df1) %>%
-        leaflet::addProviderTiles("Stamen.Toner") %>%
+    leaflet_map <- leaflet::leaflet(df1) %>%
+        #leaflet::addTiles() |>
+        #addProviderTiles(providers$Stamen.Toner) |>
+        #addProviderTiles(providers$CartoDB.Positron) |>
+        #addProviderTiles(providers$Esri.NatGeoWorldMap, options = providerTileOptions(opacity = 0.85)) |>
+        addProviderTiles(providers$Stamen.TonerLite) |>
         leaflet::addCircleMarkers(
             lng = ~ Long,
             lat = ~ Lat,
@@ -255,10 +260,8 @@ if (is_global_data) {
             radius = ~ scaled_tot_deaths * 15
         ) |>
         leaflet.extras::addResetMapButton()
-    
-    
 } else {
-    m <- leaflet::leaflet(df1) %>%
+    leaflet_map <- leaflet::leaflet(df1) %>%
         leaflet::addProviderTiles("Stamen.Toner") %>%
         leaflet::addCircleMarkers(
             lng = ~ Long,
@@ -269,7 +272,7 @@ if (is_global_data) {
         ) |>
         leaflet.extras::addResetMapButton()
 }
-m  # Print the map
+leaflet_map  # Print the map
 ```
 
 Disconnect from cluster.
