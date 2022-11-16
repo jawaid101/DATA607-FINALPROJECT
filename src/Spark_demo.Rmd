@@ -34,6 +34,7 @@ library(tidyverse)
 library(sparklyr)
 library(DBI)
 library(assertive)
+library(readr)
 ```
 
 ```{r}
@@ -59,8 +60,58 @@ spark_web(sc)
 ```
 
 
-```{r load-category-csv-files}
-GetFileRegexp <- function(dataFreq = '2pm', is_global_data = FALSE, verbose = TRUE) {
+```{r load-into-spark}
+#
+# Load time-series data into Spark.
+#
+# Parameters:
+#   ts_type: c('deaths', 'confirmed')
+#   keep_latest: TRUE to keep only last time series observation, FALSE to keep all
+#   global: TRUE for global dataset, FALSE for USA (default)
+LoadTimeSeriesDataset <- function(ts_type, keep_latest, global = FALSE, verbose = TRUE) {
+    file_name <-
+        Output.GetTimeSeriesFileName(ts_type = ts_type, global = global)
+    
+    cwd <- getwd()
+    
+    # Province/State,Country/Region,Lat,Long
+    
+    # ID,iso2,iso3,code3,FIPS,Admin2,Province_State,Country_Region,Lat,Long_,Combined_Key
+    file_path <-
+        paste0(cwd, "/../data/processed/timeseries/", file_name)
+    df <- readr::read_csv(file = file_path, col_names = TRUE)
+    
+    # remove backslash from character fields
+    df <- rename(df, 'Province_State' = 'Province/State')
+    df <- rename(df, 'Country_Region' = 'Country/Region')
+    
+    # pivot longer on date columns
+    df <- ds |>
+        pivot_longer(contains('/'), names_to = 'date', values_to = ts_type)
+    
+    # mutate date type
+    df <- df |>
+        mutate(date = as.Date(date, format = '%m/%d/%y'))
+    
+    if (keep_latest) {
+        df <- df |> group_by(Country_Region, Province_State) |> filter(row_number() == n())
+    }
+
+    max_deaths <- max(df$deaths)
+    df <- df |> 
+        mutate(scaled_tot_deaths = deaths / max_deaths)
+
+    sdf <- copy_to(sc,
+                   df,
+                   name = "coviddata",
+                   header = TRUE,
+                   memory = TRUE,
+                   overwrite = TRUE)
+    sdf_dim(sdf)
+    return (sdf)
+}
+
+GetDailyFileRegexp <- function(dataFreq = '2pm', is_global_data = FALSE, verbose = TRUE) {
     n <- as.integer(str_replace(dataFreq, "pm", ""))
     file_regexp <- switch(
         n,
@@ -86,13 +137,13 @@ GetFileRegexp <- function(dataFreq = '2pm', is_global_data = FALSE, verbose = TR
 }
 
 #
-# Load data into Spark.
+# Load daily data into Spark.
 #
 # Parameters:
 #   dataFreq : Data frequency: c('1pm', '2pm', '3pm', '4pm') for 1, 2 (default), 3, or 4 samples per month
 #   global: TRUE for global dataset, FALSE for USA (default)
-LoadDataset <- function(dataFreq = '2pm', global = FALSE, verbose = TRUE) {
-    file_regexp <- GetFileRegexp(dataFreq, global, verbose)
+LoadDailyDataset <- function(dataFreq = '2pm', global = FALSE, verbose = TRUE) {
+    file_regexp <- GetDailyFileRegexp(dataFreq, global, verbose)
     full_sdf <- NULL
     for (r in file_regexp) {
         full_regexp <- paste0(
@@ -132,34 +183,34 @@ is_global_data <- TRUE
 ```
 
 
-```{r}
-sdf <- LoadDataset(dataFreq = '1pm',  global = is_global_data, verbose = TRUE)
+```{r load-daily-dataset}
+#sdf <- LoadDailyDataset(dataFreq = '1pm',  global = is_global_data, verbose = TRUE)
+```
+
+
+```{r load-ts-dataset}
+sdf <- LoadTimeSeriesDataset(ts_type = 'deaths', keep_latest = TRUE, global = TRUE, verbose = TRUE)
+sdf
 ```
 
 Mutate column data types
 
-```{r}
-if (is_global_data) {
-    sdf <- sdf |> CleanStatsTable.Global() |> CleanDateComponents()
-} else {
-    sdf <- sdf |> CleanStatsTable.USA() |> CleanDateComponents()
-}
-sdf
-```
-
-Collect data in R dataframe
-
-```{r convert-to-dataframe-usa}
-df <- sdf_collect(sdf)
-df
+```{r mutate-daily-dataset}
+# if (is_global_data) {
+#     sdf <- sdf |> CleanStatsTable.Global() |> CleanDateComponents()
+# } else {
+#     sdf <- sdf |> CleanStatsTable.USA() |> CleanDateComponents()
+# }
+# sdf
 ```
 
 
 ```{r visualize-col-types-usa}
-library(visdat)
-df |>
-    sample_n(ifelse(NROW(df) > 5000, 5000, NROW(df))) |> # downsample
-    vis_dat() # color-blind safe 
+# library(visdat)
+# df <- sdf_collect(sdf)
+# df |>
+#     sample_n(ifelse(NROW(df) > 5000, 5000, NROW(df))) |> # downsample
+#     vis_dat() # color-blind safe 
 ```
 
 
@@ -169,69 +220,16 @@ library(plotly)
 ```
 
 
-```{r plot-testing-rate}
-p <- NULL
-if (is_global_data) {
-    p <-
-        ggplot(df, aes(x = Date, y = Testing_Rate, color = Country_Region)) + geom_line()
-} else {
-    p <-
-        ggplot(df, aes(x = Date, y = Testing_Rate, color = Province_State)) + geom_line()
-    ggplotly(p)
-}
-```
-
-
-```{r plot-deaths}
-# Note: states with higher population will have higher number of deaths
-p <- NULL
-if (is_global_data) {
-    p <-
-        ggplot(df, aes(x = Date, y = Deaths, color = Country_Region)) + geom_line()
-    ggplotly(p)
-} else {
-    p <-
-        ggplot(df, aes(x = Date, y = Deaths, color = Province_State)) + geom_line()
-    ggplotly(p)
-}
-```
-
 Run usual R workflows against dataset, no change to syntax but data is in cluster.
 
 ```{r}
-df1 <- NULL
-if (is_global_data) {
-    df1 <- df |>
-        filter(!is.na(Lat)) |>
-        filter(!is.na(Long_)) |>
-        group_by(Country_Region) |>
-        slice(which.max(Deaths)) |>
-        mutate(TotalDeaths = Deaths) |>
-        select(Province_State, Country_Region, Lat, Long_, Deaths, TotalDeaths)
-        #distinct(Province_State, Country_Region) |>
-
-} else {
-    df1 <- df |>
-        filter(!is.na(Lat)) |>
-        filter(!is.na(Long_)) |>
-        group_by(Province_State) |>
-        filter(Deaths == cumsum(Deaths)) |> 
-        select(Province_State, Country_Region, Lat, Long_, Deaths) |>
-        unique()
-}
-```
-
-```{r}
-
-max_deaths <- max(df1$TotalDeaths)
-df1 <-
-    df1 |> 
-    mutate(scaled_tot_deaths = TotalDeaths / max_deaths, .after = Deaths) |>
-    mutate(across(matches(c("Lat", "Long_")), as.numeric))
-    
-df1_low <- df1 |> filter(scaled_tot_deaths < 0.5)
-df1_high <- df1 |> filter(scaled_tot_deaths >= 0.5
-)
+# max_deaths <- max(df$deaths)
+# df1 <-
+#     df |> 
+#     mutate(scaled_tot_deaths = deaths / max_deaths, .after = deaths)
+# 
+# df1_low <- df1 |> filter(scaled_tot_deaths < 0.5)
+# df1_high <- df1 |> filter(scaled_tot_deaths >= 0.5
 
 ```
 
@@ -242,16 +240,19 @@ library(leaflet.extras)
 
 
 ```{r}
+
+# to use leaflet we have to use R dataframe (canot use Spark)
+system.time(df1 <- sdf_collect(sdf))
 m <- NULL
 if (is_global_data) {
     m <- leaflet::leaflet(df1) %>%
         leaflet::addProviderTiles("Stamen.Toner") %>%
         leaflet::addCircleMarkers(
-            lng = ~ Long_,
+            lng = ~ Long,
             lat = ~ Lat,
-            label = ~ paste0(Country_Region, ", ", Province_State, " Deaths: ", Deaths),
+            label = ~ paste0(Country_Region, ", ", Province_State, " Deaths: ", deaths),
             color = 'red',
-            radius = ~ scaled_tot_deaths * 10
+            radius = ~ scaled_tot_deaths * 15
         ) |>
         leaflet.extras::addResetMapButton()
     
@@ -260,9 +261,9 @@ if (is_global_data) {
     m <- leaflet::leaflet(df1) %>%
         leaflet::addProviderTiles("Stamen.Toner") %>%
         leaflet::addCircleMarkers(
-            lng = ~ Long_,
+            lng = ~ Long,
             lat = ~ Lat,
-            label = ~ paste0(Province_State, ", Deaths: ", Deaths),
+            label = ~ paste0(Province_State, ", Deaths: ", deaths),
             color = 'red',
             radius = ~ scaled_tot_deaths * 10
         ) |>
@@ -278,6 +279,6 @@ Spark.Disconnect(sc)
 ```
 
 ```{r}
-Spark.ShowJps()
+Spark.ShowJPS()
 ```
 

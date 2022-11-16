@@ -44,7 +44,7 @@ library(parallel)
 ```
 
 ```{r par-time-series-scraper}
-ScrapeTSStats.GetType <- function(targetUrl) {
+ScrapeTSStatsType <- function(targetUrl) {
     ts_type <- NULL
     if (str_detect(targetUrl, "deaths")) {
         ts_type <- 'deaths'
@@ -70,7 +70,7 @@ ScrapeTSStats <- function(targetUrl) {
     return (stats_tbl)    
 }
 
-ScrapeTSStats.Global <- function(url_index) {
+ScrapeTSStats.Global <- function(...) {
     
     source("./FilePaths.R")
     source("./CleanStatsTable.R")
@@ -79,23 +79,22 @@ ScrapeTSStats.Global <- function(url_index) {
     library(tidyverse)
     library(readr)
     
-    #url_index <- (...)
+    url_index <- (...)
 
    targetUrl <- pluck(tbl_href['raw_href'], 1, url_index)
    ts_tbl <- ScrapeTSStats(targetUrl = targetUrl)
 
    cleanedTbl <- CleanTSTable(ts_tbl)
 
-   ts_type <- ScrapeTSStats.GetType(targetUrl)
+   ts_type <- ScrapeTSStatsType(targetUrl)
    path <- Output.GetTimeSeriesFilePath(ts_type, global = TRUE)
 
-   print(paste0(ts_type, ", input: ", targetUrl, ", output: ", path))
    write_csv(cleanedTbl, file = path, quote = 'needed')
 
     return (url_index)    
 }
 
-ScrapeTSStats.USA <- function(url_index) {
+ScrapeTSStats.USA <- function(...) {
     
     source("./FilePaths.R")
     source("./CleanStatsTable.R")
@@ -104,18 +103,17 @@ ScrapeTSStats.USA <- function(url_index) {
     library(tidyverse)
     library(readr)
     
-   # url_index <- (...)
+    url_index <- (...)
 
     targetUrl <- pluck(tbl_href['raw_href'], 1, url_index)
     ts_tbl <- ScrapeTSStats(targetUrl = targetUrl)
     
     cleanedTbl <- CleanTSTable(ts_tbl)
 
-    ts_type <- ScrapeTSStats.GetType(targetUrl)
+    ts_type <- ScrapeTSStatsType(targetUrl)
     path <- Output.GetTimeSeriesFilePath(ts_type, global = FALSE)
     
-   print(paste0(ts_type, ", input: ", targetUrl, ", output: ", path))
-    write_csv(cleanedTbl, file = path, quote = 'needed')
+     write_csv(cleanedTbl, file = path, quote = 'needed')
 
     return (url_index)    
 }
@@ -225,7 +223,7 @@ cr <- Cluster.Start()
 ```
 i
 ```{r}
-targetURL <- URL.TS.GLOBAL.CONFIRMED
+targetURL <- URL.TS.US.CONFIRMED
 targetURL
 ```
 
@@ -258,7 +256,7 @@ tbl_href <- tibble(raw_href = c(targetURL))
 Export namespace to cluster nodes
 ```{r export-namespace}
 # Function will be run on cluster nodes. Must export below namespaces
-Cluster.ExportNamespace(cr, list('ScrapeStats', 'ScrapeStats.USA', 'ScrapeStats.Global', 'ScrapeTSStats', 'ScrapeTSStats.USA', 'ScrapeTSStats.Global', 'tbl_href'))
+Cluster.ExportNamespace(cr, list('ScrapeStats', 'ScrapeStats.USA', 'ScrapeStats.Global', 'ScrapeTSStats', 'ScrapeTSStats.USA', 'ScrapeTSStats.Global', 'ScrapeTSStatsType', 'tbl_href'))
 ```
 
 Generate sequence id for all URLs. Each work item - i.e. URL to be processed - will be accessed by it's index in `tbl_href` table.

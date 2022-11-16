@@ -57,16 +57,34 @@ Output.GetDataFilePath <- function(targetDate, global = FALSE) {
     return (paste0(DB.PATH, target_year, "/", target_month, "/", file_name, ".csv"))
 }
 
-Output.GetTimeSeriesFilePath <- function(ts_type, global) {
+Output.GetTimeSeriesFileName <- function(ts_type, global) {
     assert_any_are_matching_fixed(ts_type, c("deaths", "confirmed"))
     file_name <- NULL
     if (global) {
-        file_name <- paste0('time_series_covid19_', ts_type, '_global')
+        if (ts_type == "deaths") {
+            file_name <- FILE.TS.GLOBAL.DEATHS
+        } else {
+            file_name <- FILE.TS.GLOBAL.CONFIRMED
+        }
+    } else {
+        if (ts_type == "deaths") {
+            file_name <- FILE.TS.US.DEATHS
+        } else {
+            file_name <- FILE.TS.US.CONFIRMED
+        }
     }
-    else {
-        file_name <- paste0('time_series_covid19_', ts_type, '_US')
-    }
-    return (paste0(DB.TIME_SERIES_PATH, file_name, ".csv"))
+    return (file_name)
 }
 
+#
+# Get full path to time-series data.
+# Parameters:
+#   ts_type: time-series type: c('deaths', 'confirmed')
+#   global: TRUE for global data, FALSE for USA
+#
+Output.GetTimeSeriesFilePath <- function(ts_type, global) {
+    file_name <- Output.GetTimeSeriesFileName
+    path <- paste0(DB.TIME_SERIES_PATH, file_name)
+    return (path)
+}
 
