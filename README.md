@@ -45,4 +45,5 @@
 1. [SparkFunctions.R](https://github.com/himalayahall/DATA607-FINALPROJECT/blob/14f6228fd54b89c72e8ec2ecded07e83998c2912/SparkFunctions.R) - helper functions for interacting with Spark cluster
 2. [Spark_demo.Rmd](https://github.com/himalayahall/DATA607-FINALPROJECT/blob/master/src/Spark_demo.Rmd) - script to demo Spark helper functions
 3. [NovelCoronavirusCases.Rmd](https://github.com/himalayahall/DATA607-FINALPROJECT/blob/14f6228fd54b89c72e8ec2ecded07e83998c2912/NovelCoronavirusCases.Rmd) - script to scrape US daily and timeseries data from JHU CSSE, load data into stanalone Spark cluster for EDA
-4. Sample [map plot](https://github.com/himalayahall/DATA607-FINALPROJECT/blob/aaa9f63924ff53ad2889097cd978243c1a6128d4/src/Rplot.png)
+4. [Extract.Rmd](https://github.com/himalayahall/DATA607-FINALPROJECT/blob/14f6228fd54b89c72e8ec2ecded07e83998c2912/Extract.Rmd) - script to scrape US daily and timeseries data from JHU CSSE and save to disk
+5. Sample [map plot](https://github.com/himalayahall/DATA607-FINALPROJECT/blob/aaa9f63924ff53ad2889097cd978243c1a6128d4/src/Rplot.png)
