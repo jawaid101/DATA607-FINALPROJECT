@@ -58,7 +58,7 @@ spark_web(sc)
 ```
 
 ```{r define-data-category}
-is_global_data <= FALSE
+is_global_data <- FALSE
 ```
 
 
@@ -67,6 +67,7 @@ file_prefix <- 'usa'
 if (is_global_data) {
     file_prefix <- 'global'
 }
+file_prefix
 ```
 
 
@@ -120,13 +121,13 @@ library(ggplot2)
 ```{r plot-testing-rate}
 p <- NULL
 if (is_global_data) {
-    p <-
-        ggplot(df, aes(x = Date, y = Testing_Rate, color = Country_Region)) + geom_line()
+    # p <-
+    #     ggplot(df, aes(x = Date, y = Testing_Rate, color = Country_Region)) + geom_line()
 } else {
     p <-
         ggplot(df, aes(x = Date, y = Testing_Rate, color = Province_State)) + geom_line()
+    ggplotly(p)
 }
-ggplotly(p)
 ```
 
 
@@ -134,13 +135,14 @@ ggplotly(p)
 # Note: states with higher population will have higher number of deaths
 p <- NULL
 if (is_global_data) {
-    p <-
-        ggplot(df, aes(x = Date, y = Deaths, color = Country_Region)) + geom_line()
+    # p <-
+    #     ggplot(df, aes(x = Date, y = Deaths, color = Country_Region)) + geom_line()
+    # ggplotly(p)
 } else {
     p <-
         ggplot(df, aes(x = Date, y = Deaths, color = Province_State)) + geom_line()
+    ggplotly(p)
 }
-ggplotly(p)
 ```
 
 Run usual R workflows against dataset, no change to syntax but data is in cluster.
