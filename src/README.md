@@ -12,5 +12,5 @@ Contains code that is shared by the data extraction and EDA scripts (see below)
 
 ## Data extraction and EDA
 
-7. NovelCoronavirusCases.Rmd - extract data from JHSS Githup using local cluster for high performance
-8. Spark_demo.Rmd - Demo EDA using Speak. May be used to jumpstart EDA
+1. NovelCoronavirusCases.Rmd - extract data from JHSS Githup using local cluster for high performance
+2. Spark_demo.Rmd - Demo EDA using Speak. May be used to jumpstart EDA
