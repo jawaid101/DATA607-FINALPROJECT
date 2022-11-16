@@ -189,7 +189,7 @@ glimpse(seq_id)
 
 Process URLs using cluster (map/reduce)
 ```{r par-process}
-work_results <- NULL
+work_results <- NULLreq <- GET("https://api.github.com/users/kondziu")
 if (is_global_data) {
     system.time(work_results <-
                     Cluster.ParApply(cr, seq_id, ScrapeStats.Global))
