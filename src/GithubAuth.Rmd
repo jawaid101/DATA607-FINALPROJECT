@@ -9,10 +9,10 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Github has strict [rate limits](https://docs.github.com/en/rest/overview/resources-in-the-rest-api#rate-limiting). Authenticated accounts have higher limits (more API calls than from unauthenticated API clients). This scripts uses OAuth to authenticate against Github.
+
 ```{r}
 library(httr)
-
-
 ```
 
 ```{r}
@@ -29,8 +29,8 @@ oauth_endpoints("github")
 #
 #    Replace your key and secret below.
 myapp <- oauth_app("DATA607-FINALPROJECT",
-            key = "db1d66e7b86de8957abe",
-            secret = "6e84f869b6a87dac9a1fdd9d717f0991b31123e6"
+            key = "XXXXXXXXXXXXXXXXXXXX",
+            secret = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 )
 ```
 
