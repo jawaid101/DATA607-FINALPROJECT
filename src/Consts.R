@@ -18,16 +18,20 @@ URL.GLOBAL <-
     paste0(URL.BASE, "csse_covid_19_daily_reports")
 
 # Time series
-URL.TS.US.CONFIRMED <- 
-    "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv"
-
+FILE.TS.US.DEATHS <- "time_series_covid19_deaths_US.csv"
 URL.TS.US.DEATHS <- 
-    "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv"
+    paste0("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/", FILE.TS.US.DEATHS)
 
+FILE.TS.US.CONFIRMED <- "time_series_covid19_confirmed_US.csv"
+URL.TS.US.CONFIRMED <- 
+    paste0("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/", FILE.TS.US.CONFIRMED)
+
+FILE.TS.GLOBAL.CONFIRMED <- "time_series_covid19_confirmed_global.csv"
 URL.TS.GLOBAL.CONFIRMED <- 
-    "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
+    paste0("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/", FILE.TS.GLOBAL.CONFIRMED)
 
+FILE.TS.GLOBAL.DEATHS <- "time_series_covid19_deaths_global.csv"
 URL.TS.GLOBAL.DEATHS <- 
-    "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv"
+    paste0("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/", FILE.TS.GLOBAL.DEATHS)
 
 SELENIUM.PORT <- 4545L
