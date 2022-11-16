@@ -1,0 +1,55 @@
+---
+title: "GithubAuth"
+author: "Jawaid Hakim"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(httr)
+
+
+```
+
+```{r}
+# 1. Find OAuth settings for github:
+#    http://developer.github.com/v3/oauth/
+oauth_endpoints("github")
+
+```
+
+```{r}
+# 2. To make your own application, register at
+#    https://github.com/settings/developers. Use any URL for the homepage URL
+#    (http://github.com is fine) and  http://localhost:1410 as the callback url
+#
+#    Replace your key and secret below.
+myapp <- oauth_app("DATA607-FINALPROJECT",
+            key = "db1d66e7b86de8957abe",
+            secret = "6e84f869b6a87dac9a1fdd9d717f0991b31123e6"
+)
+```
+
+```{r}
+# 3. Get OAuth credentials
+github_token <- oauth2.0_token(oauth_endpoints("github"), myapp)
+```
+
+
+```{r}
+# 4. Use API
+gtoken <- config(token = github_token)
+req <- GET("https://api.github.com/rate_limit", gtoken)
+stop_for_status(req)
+content(req)
+
+# # OR:
+# req <- with_config(gtoken, GET("https://api.github.com/rate_limit"))
+# stop_for_status(req)
+# content(req)
+```
+
