@@ -57,11 +57,31 @@ Display web console.
 spark_web(sc)
 ```
 
+```{r define-data-category}
+is_global_data <= FALSE
+```
 
-```{r load-all-files-usa}
+
+```{r define-file-prefix-all}
+file_prefix <- 'usa'
+if (is_global_data) {
+    file_prefix <- 'global'
+}
+```
+
+
+```{r load-category-csv-files}
 sdf <- spark_read_csv(
-  path = "file:///Users/jawaidhakim/Downloads/CUNY/DATA607/DATA607-FINALPROJECT/data/processed/*/*/usa-*.csv",
-  sc = sc, name = "coviddata", header=TRUE, memory = TRUE)
+    path = paste0(
+        "file:///Users/jawaidhakim/Downloads/CUNY/DATA607/DATA607-FINALPROJECT/data/processed/*/*/",
+        file_prefix,
+        "-*.csv"
+    ),
+    sc = sc,
+    name = "coviddata",
+    header = TRUE,
+    memory = TRUE
+)
 sdf_dim(sdf)
 sdf
 ```
@@ -69,7 +89,11 @@ sdf
 Mutate column data types
 
 ```{r}
-sdf <- sdf |> CleanStatsTable.USA() |> CleanDateComponents()
+if (is_global_data) {
+    sdf <- sdf |> CleanStatsTable.Global() |> CleanDateComponents()
+} else {
+    sdf <- sdf |> CleanStatsTable.USA() |> CleanDateComponents()
+}
 sdf
 ```
 
@@ -82,7 +106,7 @@ df
 
 ```{r visualize-col-types-usa}
 library(visdat)
-df |> 
+df |>
     sample_n(ifelse(NROW(df) > 5000, 5000, NROW(df))) |> # downsample
     vis_dat(palette = "cb_safe") # color-blind safe 
 ```
@@ -94,57 +118,59 @@ library(ggplot2)
 
 
 ```{r plot-testing-rate}
-p <- ggplot(df, aes(x = Date, y = Testing_Rate, color = Province_State)) + geom_line()
+p <- NULL
+if (is_global_data) {
+    p <-
+        ggplot(df, aes(x = Date, y = Testing_Rate, color = Country_Region)) + geom_line()
+} else {
+    p <-
+        ggplot(df, aes(x = Date, y = Testing_Rate, color = Province_State)) + geom_line()
+}
 ggplotly(p)
 ```
 
-```{r plot-incident-rate}
-p <- ggplot(df, aes(x = Date, y = Incident_Rate, color = Province_State)) + geom_line()
-ggplotly(p)
-```
 
 ```{r plot-deaths}
 # Note: states with higher population will have higher number of deaths
-p <- ggplot(df, aes(x = Date, y = Deaths, color = Province_State)) + geom_line()
+p <- NULL
+if (is_global_data) {
+    p <-
+        ggplot(df, aes(x = Date, y = Deaths, color = Country_Region)) + geom_line()
+} else {
+    p <-
+        ggplot(df, aes(x = Date, y = Deaths, color = Province_State)) + geom_line()
+}
 ggplotly(p)
 ```
 
 Run usual R workflows against dataset, no change to syntax but data is in cluster.
 
 ```{r}
-summarize_all(sdf, mean) %>%
-  show_query()
-```
-
-Run correlation across all numeric variables.
-
-```{r}
-sdf <- sdf |> CleanStatsTable.USA() |> CleanDateComponents()
-sparklyr::
-```
-
-```{r}
-# library(magrittr)
-# library(maps)
-# library(mapproj)
-# library(viridis)
-
-```
-
-
-```{r}
- df1 <- df |>
-    filter(! is.na(Lat)) |>
-    filter(! is.na(Long_)) |>
-    group_by(Province_State) |>
-    filter(Deaths == max(Deaths)) |>     # pick out greatest death count
-    select(Province_State, Lat, Long_, Deaths) |>
-    unique()
+df1 <- NULL
+if (is_global_data) {
+    df1 <- df |>
+        filter(!is.na(Lat)) |>
+        filter(!is.na(Long_)) |>
+        group_by(Country_Region) |>
+        filter(Deaths == max(Deaths)) |>     # pick out greatest death count
+        select(Province_State, Lat, Long_, Deaths) |>
+        unique()  # keep one unique max death row       
+} else {
+    df1 <- df |>
+        filter(!is.na(Lat)) |>
+        filter(!is.na(Long_)) |>
+        group_by(Province_State) |>
+        filter(Deaths == max(Deaths)) |>     # pick out greatest death count
+        select(Province_State, Lat, Long_, Deaths) |>
+        unique()
+}
 
 max_deaths <- max(df1$Deaths)
-df1 <- df1 |> mutate(scaled_tot_deaths = Deaths / max_deaths, .after = Deaths)
+df1 <-
+    df1 |> mutate(scaled_tot_deaths = Deaths / max_deaths, .after = Deaths)
 df1_low <- df1 |> filter(scaled_tot_deaths < 0.5)
-df1_high <- df1 |> filter(scaled_tot_deaths >= 0.5)
+df1_high <- df1 |> filter(scaled_tot_deaths >= 0.5
+)
 ```
 
 
@@ -155,17 +181,32 @@ library(leaflet.extras)
 
 
 ```{r}
-m <- leaflet::leaflet(df1) %>%
-    leaflet::addProviderTiles("Stamen.Toner") %>%
-    leaflet::addCircleMarkers(
-        lng = ~ Long_,
-        lat = ~ Lat,
-        label = ~ paste0(Province_State, ", Deaths: ", Deaths),
-        color = 'red',
-        radius = ~ scaled_tot_deaths * 10
-    ) |>
-      leaflet.extras::addResetMapButton()
+m <- NULL
+if (is_global_data) {
+    m <- leaflet::leaflet(df1) %>%
+        leaflet::addProviderTiles("Stamen.Toner") %>%
+        leaflet::addCircleMarkers(
+            lng = ~ Long_,
+            lat = ~ Lat,
+            label = ~ paste0(Country_Region, ", Deaths: ", Deaths),
+            color = 'red',
+            radius = ~ scaled_tot_deaths * 10
+        ) |>
+        leaflet.extras::addResetMapButton()
     
+    
+} else {
+    m <- leaflet::leaflet(df1) %>%
+        leaflet::addProviderTiles("Stamen.Toner") %>%
+        leaflet::addCircleMarkers(
+            lng = ~ Long_,
+            lat = ~ Lat,
+            label = ~ paste0(Province_State, ", Deaths: ", Deaths),
+            color = 'red',
+            radius = ~ scaled_tot_deaths * 10
+        ) |>
+        leaflet.extras::addResetMapButton()
+}
 m  # Print the map
 ```
 
