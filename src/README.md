@@ -1,16 +1,10 @@
 # R source
 
-## Code library
+1. Constants.R - constant definitions
+2. FilePaths.R - misc file paths for input/output
+3. ExtractUrl.Rmd - script to extract and save URLs that need to be processed for daily data (not timeseries). Using Selenium for web scraping and Parallel for local cluster
+4. SparkFunctions.R - functions for working with local Spark installation
+5. ClearStatsTable.R - functions for cleaning up scraped stats tables (change column type, etc.)
+6. LocalClusterFunctions.R - functions for managing local cluster for parallel processing
+7. NovelCoronavirusCases.Rmd - extracts daily and timeseries data. For daily data, before running this script the Extract.Rmd must be run
 
-Contains code that is shared by the data extraction and EDA scripts (see below)
-
-1. CleanStatsTable.R - cleans COVID stats table, mutates column types, adds ancilliary columns, etc.
-2. Consts.R - constants
-3. ExtractUrl.R - extracts data from Github JHSS URL
-4. FilePaths.R - constructs file paths for reading/writing data
-5. SparkFunctions.R - Helper Spark functions
-
-## Data extraction and EDA
-
-1. NovelCoronavirusCases.Rmd - extracts data from JHSS Githup using local cluster for high performance
-2. Spark_demo.Rmd - script to demo EDA using Spark. May be used to jumpstart EDA. Sample plot is [here](https://github.com/himalayahall/DATA607-FINALPROJECT/blob/master/src/Rplot.png)
