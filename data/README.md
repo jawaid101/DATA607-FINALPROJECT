@@ -11,9 +11,15 @@
         |    |── irs_data.csv
         |    |── covid-vaccine-willingness-and-people-vaccinated-by-country.csv
         |    |── face-covering-policies-covid.csv
-        |── processed          # processed data, hierarchical folders for easy Spark loading: ./processed/[YEAR]/[MONTH]/
-        |    |── README.md
-        |    |── 2019
+        |── processed          # processed data
+        |    |── README.md     
+        |    |── timeseries    # timerseries data
+        |    |    |── time_series_covia19_deaths_US.csv      # US deaths
+        |    |    |── time_series_covia19_deaths_global.csv  # Global deaths
+        |    |    |── time_series_covia19_confirmed_US.csv   # US confirmed cases
+        |    |    |── time_series_covia19_confirmed_US.csv   # Global confirmed cases   
+        |    |── README.md       
+        |    |── 2019.         # Daily date - hierarchical folders for easy Spark loading: ./processed/[YEAR]/[MONTH]/
         |    |    |── JAN
         |    |    |    |── usa_2019-01-01    # usa data for Jan 1, 2019
         |    |    |    |── usa_2019-01-02
