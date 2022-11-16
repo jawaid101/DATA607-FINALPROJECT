@@ -35,7 +35,7 @@
 - [X] Create base helper Spark functions (Jawaid)
 - [X] Create base script to scrape JHU CSSE data (Jawaid)
 - [X] Create base script to load data into standalone Spark cluster for EDA (Jawaid)
-- [ ] Load complete JHU CSSE data into Spark cluster (Jawaid)
+- [x] Load complete JHU CSSE data into Spark cluster (Jawaid)
 - [ ] Load enrichment data into Spark cluster (Josh)
 - [ ] Create presentation slide deck using RMarkdown (Josh and Jawaid)
 - [ ] Presentation (Josh and Jawaid)
@@ -43,5 +43,6 @@
 # Artifacts
 
 1. [SparkFunctions.R](https://github.com/himalayahall/DATA607-FINALPROJECT/blob/14f6228fd54b89c72e8ec2ecded07e83998c2912/SparkFunctions.R) - helper functions for interacting with Spark cluster
-2. [Spark.Rmd](https://github.com/himalayahall/DATA607-FINALPROJECT/blob/14f6228fd54b89c72e8ec2ecded07e83998c2912/Spark.Rmd) - script to demo Spark helper functions
+2. [Spark.Rmd](https://github.com/himalayahall/DATA607-FINALPROJECT/blob/14f6228fd54b89c72e8ec2ecded07e83998c2912/Spark_demo.Rmd) - script to demo Spark helper functions
 3. [NovelCoronavirusCases.Rmd](https://github.com/himalayahall/DATA607-FINALPROJECT/blob/14f6228fd54b89c72e8ec2ecded07e83998c2912/NovelCoronavirusCases.Rmd) - script to scrape US data from JHU CSSE, load data into stanalone Spark cluster for EDA
+4. Sample [map plot](https://github.com/himalayahall/DATA607-FINALPROJECT/blob/aaa9f63924ff53ad2889097cd978243c1a6128d4/src/Rplot.png)
