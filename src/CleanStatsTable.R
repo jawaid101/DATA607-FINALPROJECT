@@ -4,15 +4,11 @@ CleanStatsTable <- function(statsTbl) {
     # change column types
     cleanedTbl <- statsTbl |>
         mutate(across(
-            c("Confirmed", "Deaths", "Recovered", "Active", "FIPS"),
+            contains(c("Confirmed", "Deaths", "Recovered", "Active", "FIPS")),
             as.integer
         )) |>
-        mutate(across(
-            c("Incident_Rate",
-              "Case_Fatality_Ratio",
-              "Long_", "Lat"),
-            as.numeric
-        ))
+        mutate(across(ends_with("_Rate"), as.numeric))  |>
+        mutate(across(ends_with("_Ratio"), as.numeric))
     return (cleanedTbl)
 }
 
@@ -29,20 +25,16 @@ CleanStatsTable.USA <- function(statsTbl) {
     
     cleanedTbl <- CleanStatsTable(statsTbl = statsTbl)
     cleanedTbl <- cleanedTbl |>
-        mutate(across(
+        mutate(across(contains(
             c(
                 "Total_Test_Results",
                 "People_Hospitalized",
                 "UID",
                 "Active",
                 "FIPS"
-            ),
-            as.integer
-        )) |>
-        mutate(across(c("Testing_Rate",
-                        "Hospitalization_Rate"),
-                      as.numeric))
-    
+            )
+        ),
+        as.integer))
     return (cleanedTbl)
 }
 
@@ -77,15 +69,17 @@ AddDateComponents <- function(statsTbl, targetDate) {
     
     # add date/year/month/day columns
     cleanedTbl <-  statsTbl |>
-        mutate(Date = targetDate) |>
-        mutate(Year = target_year) |>
-        mutate(Month = target_month) |>
-        mutate(Day = target_day) |>
-        relocate(Date, .after = Country_Region) |>
+        mutate(
+            Date = targetDate,
+            Year = target_year,
+            Month = target_month,
+            Day = target_day
+        ) |>
+        relocate(Date, .before = Last_Update) |>
         relocate(Year, .after = Date) |>
         relocate(Month, .after = Year) |>
         relocate(Day, .after = Month)
-        
+    
     return (cleanedTbl)
 }
 

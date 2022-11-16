@@ -50,20 +50,15 @@ Create function to run on cluster
 #
 # Scrape stats table
 # Parameters:
-#   url_index: index of table to process
+#   targetUrl: URL to process
 #
 # Returns:
 #   Scraped stats table
 #
-ScrapeStats <- function(url_index) {
+ScrapeStats <- function(targetUrl) {
     
     # need to load libraries on cluster nodes
     library(readr)
-
-    source("./Consts.R", local = TRUE)
-
-    # get URL and date from exported namespace
-    targetUrl <- tbl_href$raw_href[url_index]
 
     stats_tbl <- readr::read_csv(file = targetUrl)
     
@@ -80,22 +75,27 @@ ScrapeStats <- function(url_index) {
 #
 ScrapeStats.Global <- function(...) {
     
-    source("./FilePaths.R", local = TRUE)
-    source("./CleanStatsTable.R", local = TRUE)
+    library(purrr)
+
+    source("./FilePaths.R")
+    source("./CleanStatsTable.R")
 
     # get index of URL to process
     url_index <- (...)
-    targetDate <- tbl_href$date[url_index]
+
+    # get target URL and date from exported namespace
+    targetUrl <- pluck(tbl_href['raw_href'], 1, url_index)   # tbl_href$raw_href[url_index]
+    targetDate <- pluck(tbl_href['date'], 1, url_index)  # tbl_href$date[url_index]
     
-    stats_tbl <- ScrapeStats(url_index)
-    
+    stats_tbl <- ScrapeStats(targetUrl)
+
     cleanedTbl <- CleanStatsTable.Global(statsTbl = stats_tbl)
-    cleanedTbl <- AddDateComponents(statsTbl= cleanedTbl, targetDate = targetDate)
-    
-    path <- Output.GetDataFilePath(targetDate = targetDate, global = FALSE)
+    cleanedTbl <- AddDateComponents(statsTbl = cleanedTbl, targetDate = targetDate)
+     
+    path <- Output.GetDataFilePath(targetDate = targetDate, global = TRUE)
     write_csv(cleanedTbl, file = path, quote = 'needed')
-    
-    return (cleanedTbl)
+     
+    return (url_index)
 }
 
 #
@@ -108,19 +108,26 @@ ScrapeStats.Global <- function(...) {
 #
 ScrapeStats.USA <- function(...) {
     
-    source("./FilePaths.R", local = TRUE)
-    source("./CleanStatsTable.R", local = TRUE)
-
+    library(purrr)
+    
+    source("./FilePaths.R")
+    source("./CleanStatsTable.R")
+    
     # get index of URL to process
     url_index <- (...)
-    targetDate <- tbl_href$date[url_index]
     
-    stats_tbl <- ScrapeStats(url_index)
+    # get target URL and date from exported namespace
+    targetUrl <- pluck(tbl_href['raw_href'], 1, url_index)
+    targetDate <- pluck(tbl_href['date'], 1, url_index)
+
+    stats_tbl <- ScrapeStats(targetUrl)
     
     cleanedTbl <- CleanStatsTable.USA(statsTbl = stats_tbl)
-    cleanedTbl <- AddDateComponents(statsTbl = cleanedTbl, targetDate = targetDate)
+    cleanedTbl <-
+        AddDateComponents(statsTbl = cleanedTbl, targetDate = targetDate)
     
-    path <- Output.GetDataFilePath(targetDate = targetDate, global = FALSE)
+    path <-
+        Output.GetDataFilePath(targetDate = targetDate, global = FALSE)
     write_csv(cleanedTbl, file = path, quote = 'needed')
     
     return (url_index)
@@ -139,16 +146,30 @@ Start cluster
 cr <- Cluster.Start()
 ```
 
+Select which data to scrape: `URL.GLOBAL` or `URL.USA`
+```{r set-target-url}
+targetURL <- URL.GLOBAL
+targetURL
+```
+
+```{r set-target-url}
+is_global_data <- str_ends(targetURL, pattern = "_us", negate = TRUE)
+is_global_data
+```
 
 ```{r load-hrefs}
-href_path <- Output.GetHrefFilePath('href', global = FALSE)
+library(lubridate)
+    
+
+href_path <- Output.GetHrefFilePath('href', global = is_global_data)
 tbl_href <- read_csv(href_path)
+tbl_href <- tbl_href |> mutate(date = as.Date(date, "%m-%d-%Y"))
 tbl_href
 ```
 
 Export namespace to cluster nodes
 ```{r export-namespace}
-# Function ScrapeStats.USA will be run on cluster nodes. It will access to below namespaces
+# Function will be run on cluster nodes. Must export below namespaces
 Cluster.ExportNamespace(cr, list('ScrapeStats', 'ScrapeStats.USA', 'ScrapeStats.Global', 'tbl_href'))
 ```
 
@@ -168,7 +189,14 @@ glimpse(seq_id)
 
 Process URLs using cluster (map/reduce)
 ```{r par-process}
-system.time(work_results <- Cluster.ParApply(cr, seq_id, ScrapeStats.USA))
+work_results <- NULL
+if (is_global_data) {
+    system.time(work_results <-
+                    Cluster.ParApply(cr, seq_id, ScrapeStats.Global))
+} else {
+    system.time(work_results <-
+                    Cluster.ParApply(cr, seq_id, ScrapeStats.USA))
+}
 unlist(work_results)
 ```
 

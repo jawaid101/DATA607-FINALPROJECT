@@ -71,13 +71,10 @@ FindTargetElements <- function(startUrl) {
     rsClient$navigate(startUrl)
     Sys.sleep(3)
 
-    # Find most recent date that was processed
-    global <- str_ends(startUrl, "_us", negate = TRUE)
-
     css_selector <- "a.js-navigation-open.Link--primary"
     elems <- rsClient$findElements(using = "css selector", 
                                    value = css_selector) 
-    tbl_href <- tibble(name = character(), date = date, year = integer(), month = integer(), day = integer(), href = character(), raw_href = character())
+    tbl_href <- tibble(name = character(), date = character(), year = integer(), month = integer(), day = integer(), href = character(), raw_href = character())
     for (elem in elems) {
         name <- as.character(elem$getElementText())
         if (tolower(name) != "readme.md" && tolower(name) != ".gitignore") {
@@ -92,7 +89,7 @@ FindTargetElements <- function(startUrl) {
             raw_href <- str_replace(href, "github.com", "raw.githubusercontent.com")
             raw_href <- str_replace(raw_href, "/blob", "")
             
-            tbl_href <- tbl_href %>% add_row(name = name, date = date, year = year, month = month, day = day, href = href, raw_href = raw_href)
+            tbl_href <- tbl_href %>% add_row(name = name, date = sdate, year = year, month = month, day = day, href = href, raw_href = raw_href)
          }
     }
     tbl_href <- tbl_href %>%
@@ -103,8 +100,12 @@ FindTargetElements <- function(startUrl) {
 
 Find elements.
 
+```{r set-target-url}
+targetURL <- URL.GLOBAL
+```
+
 ```{r find-elements}
-tbl_href <- FindTargetElements(URL.USA)
+tbl_href <- FindTargetElements(targetURL)
 head(tbl_href, n = 5)
 ```
 
@@ -117,16 +118,17 @@ rsDrv$server$stop()
 Save URLs of processed data
 
 ```{r save-processed-hrefs}
-full_path <- Output.GetHrefFilePath('href', global = FALSE)
+full_path <- Output.GetHrefFilePath('href', str_ends(targetURL, pattern = "_us", negate = TRUE))
 write_csv(tbl_href, full_path, quote = 'needed')
+full_path
 ```
 
 Save current timestamp
 
 ```{r}
-full_path <- Output.GetHrefFilePath('ts', global = FALSE)
+full_path <- Output.GetHrefFilePath('ts', str_ends(targetURL, pattern = "_us", negate = TRUE))
 ts <- format(today(), '%Y-%m-%d')
 write_file(ts, full_path)
-
+full_path
 ```
 
