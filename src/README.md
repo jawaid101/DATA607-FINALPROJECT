@@ -9,7 +9,9 @@
   > - DailyData_ExtractUrl.Rmd - script to extract and save daily data URLs that need to be processed for daily data (not timeseries). Using Selenium for web scraping and Parallel for local cluster
   > - DailyData_Scrape.Rmd - script to download daily data. Using Selenium for web scraping and Parallel for local cluster
   > - DailyDaya_CleanStatsTable.R - functions for cleaning up scraped stats tables (change column type, etc.)
+  > - DailyData_EDA.Rmd - starter script for daily data EDA
 7. Timeseries
   > - TimeSeries_Scrape.Rmd - script to download timeseries. Using Selenium for web scraping and Parallel for local cluster
   > - TimeSeries_CleanStatsTable.R - functions for cleaning up timeseries tables (change column type, etc.)
+  > - TimeSeries_EDA.Rmd - starter script for timeseries EDA
 8. Rplot.png - sample EDA plot
