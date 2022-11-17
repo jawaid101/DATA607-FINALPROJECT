@@ -1,5 +1,5 @@
 ---
-title: "Use Spark for EDA"
+title: "Use Spark for daily data EDA"
 author: "Jawaid Hakim"
 date: "`r Sys.Date()`"
 output:
@@ -45,8 +45,6 @@ source("SparkFunctions.R")
 source("./Consts.R")
 source("./FilePaths.R")
 source("./DailyData_CleanStatsTable.R")
-source("./TimeSeries_CleanStatsTable.R")
-
 ```
 
 Connect to local Spark standalone.
@@ -63,56 +61,6 @@ spark_web(sc)
 
 
 ```{r load-into-spark}
-#
-# Load time-series data into Spark.
-#
-# Parameters:
-#   ts_type: c('deaths', 'confirmed')
-#   keep_latest: TRUE to keep only last time series observation, FALSE to keep all
-#   global: TRUE for global dataset, FALSE for USA (default)
-LoadTimeSeriesDataset <- function(ts_type, keep_latest, global = FALSE, verbose = TRUE) {
-    file_name <-
-        Output.GetTimeSeriesFileName(ts_type = ts_type, global = global)
-    
-    cwd <- getwd()
-    
-    # Province/State,Country/Region,Lat,Long
-    
-    # ID,iso2,iso3,code3,FIPS,Admin2,Province_State,Country_Region,Lat,Long_,Combined_Key
-    file_path <-
-        paste0(cwd, "/../data/processed/timeseries/", file_name)
-    df <- readr::read_csv(file = file_path, col_names = TRUE)
-    
-    # remove backslash from character fields
-    df <- rename(df, 'Province_State' = 'Province/State')
-    df <- rename(df, 'Country_Region' = 'Country/Region')
-    
-    # pivot longer on date columns
-    df <- df |>
-        pivot_longer(contains('/'), names_to = 'date', values_to = ts_type)
-    
-    # mutate date type
-    df <- df |>
-        mutate(date = as.Date(date, format = '%m/%d/%y'))
-    
-    if (keep_latest) {
-        df <- df |> group_by(Country_Region, Province_State) |> filter(row_number() == n())
-    }
-
-    max_deaths <- max(df$deaths)
-    df <- df |> 
-        mutate(scaled_tot_deaths = deaths / max_deaths)
-
-    sdf <- copy_to(sc,
-                   df,
-                   name = "coviddata",
-                   header = TRUE,
-                   memory = TRUE,
-                   overwrite = TRUE)
-    sdf_dim(sdf)
-    return (sdf)
-}
-
 GetDailyFileRegexp <- function(dataFreq = '2pm', is_global_data = FALSE, verbose = TRUE) {
     n <- as.integer(str_replace(dataFreq, "pm", ""))
     file_regexp <- switch(
@@ -185,33 +133,29 @@ is_global_data <- TRUE
 
 
 ```{r load-daily-dataset}
-#sdf <- LoadDailyDataset(dataFreq = '1pm',  global = is_global_data, verbose = TRUE)
-```
-
-
-```{r load-ts-dataset}
-sdf <- LoadTimeSeriesDataset(ts_type = 'deaths', keep_latest = TRUE, global = TRUE, verbose = TRUE)
+sdf <- LoadDailyDataset(dataFreq = '1pm',  global = is_global_data, verbose = TRUE)
 sdf
 ```
+
 
 Mutate column data types
 
 ```{r mutate-daily-dataset}
-# if (is_global_data) {
-#     sdf <- sdf |> CleanDDStatsTable.Global() |> CleanDateComponents()
-# } else {
-#     sdf <- sdf |> CleanDDStatsTable.USA() |> CleanDateComponents()
-# }
-# sdf
+if (is_global_data) {
+    sdf <- sdf |> CleanDDStatsTable.Global() |> CleanDateComponents()
+} else {
+    sdf <- sdf |> CleanDDStatsTable.USA() |> CleanDateComponents()
+}
+sdf
 ```
 
 
 ```{r visualize-col-types-usa}
-# library(visdat)
-# df <- sdf_collect(sdf)
-# df |>
-#     sample_n(ifelse(NROW(df) > 5000, 5000, NROW(df))) |> # downsample
-#     vis_dat() # color-blind safe 
+library(visdat)
+df <- sdf_collect(sdf)
+df |>
+    sample_n(ifelse(NROW(df) > 5000, 5000, NROW(df))) |> # downsample
+    vis_dat() # color-blind safe
 ```
 
 
@@ -223,14 +167,10 @@ library(plotly)
 Run usual R workflows against dataset, no change to syntax but data is in cluster.
 
 ```{r}
-# max_deaths <- max(df$deaths)
-# df1 <-
-#     df |> 
-#     mutate(scaled_tot_deaths = deaths / max_deaths, .after = deaths)
-# 
-# df1_low <- df1 |> filter(scaled_tot_deaths < 0.5)
-# df1_high <- df1 |> filter(scaled_tot_deaths >= 0.5
-
+max_deaths <- max(df$deaths)
+df1 <-
+     df |> 
+     mutate(scaled_tot_deaths = deaths / max_deaths, .after = deaths)
 ```
 
 ```{r}
@@ -259,7 +199,7 @@ if (is_global_data) {
             lat = ~ Lat,
             label = ~ paste0(Country_Region, ", ", Province_State, " Deaths: ", deaths),
             color = 'red',
-            radius = ~ scaled_tot_deaths * 15
+            radius = ~ scaled_var * 15
         ) |>
         leaflet.extras::addResetMapButton()
 } else {
