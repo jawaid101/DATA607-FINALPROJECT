@@ -1,5 +1,3 @@
-library(assertive)
-
 source('./Consts.R')
 
 #
@@ -9,6 +7,8 @@ source('./Consts.R')
 #   file_type: c('href', 'ts')
 #   global: TRUE for Global data file, FALSE for USA data file
 Output.GetHrefFilePath <- function(file_type = 'href', global = FALSE) {
+    source('./Consts.R')
+    
     file_name <- NULL
     if (str_to_lower(file_type) == 'href') {
         if (global) {
@@ -42,6 +42,8 @@ Output.GetHrefFilePath <- function(file_type = 'href', global = FALSE) {
 #   targetDate: MM-DD-YYYY
 #   global: TRUE for Global data file, FALSE for USA data file
 Output.GetDataFilePath <- function(targetDate, global = FALSE) {
+    source('./Consts.R')
+    
     file_name <- NULL
     
     target_year <- lubridate::year(targetDate)
@@ -58,6 +60,10 @@ Output.GetDataFilePath <- function(targetDate, global = FALSE) {
 }
 
 Output.GetTimeSeriesFileName <- function(ts_type, global) {
+    source('./Consts.R')
+    
+    library(assertive)
+    
     assert_any_are_matching_fixed(ts_type, c("deaths", "confirmed"))
     file_name <- NULL
     if (global) {
@@ -83,7 +89,9 @@ Output.GetTimeSeriesFileName <- function(ts_type, global) {
 #   global: TRUE for global data, FALSE for USA
 #
 Output.GetTimeSeriesFilePath <- function(ts_type, global) {
-    file_name <- Output.GetTimeSeriesFileName
+    source('./Consts.R')
+    
+    file_name <- Output.GetTimeSeriesFileName(ts_type = ts_type, global = global)
     path <- paste0(DB.TIME_SERIES_PATH, file_name)
     return (path)
 }

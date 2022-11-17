@@ -44,7 +44,9 @@ source("SparkFunctions.R")
 ```{r}
 source("./Consts.R")
 source("./FilePaths.R")
-source("./CleanStatsTable.R")
+source("./DailyData_CleanStatsTable.R")
+source("./TimeSeries_CleanStatsTable.R")
+
 ```
 
 Connect to local Spark standalone.
@@ -196,9 +198,9 @@ Mutate column data types
 
 ```{r mutate-daily-dataset}
 # if (is_global_data) {
-#     sdf <- sdf |> CleanStatsTable.Global() |> CleanDateComponents()
+#     sdf <- sdf |> CleanDDStatsTable.Global() |> CleanDateComponents()
 # } else {
-#     sdf <- sdf |> CleanStatsTable.USA() |> CleanDateComponents()
+#     sdf <- sdf |> CleanDDStatsTable.USA() |> CleanDateComponents()
 # }
 # sdf
 ```

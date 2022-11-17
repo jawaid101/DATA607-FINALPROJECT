@@ -1,0 +1,145 @@
+---
+title: "Scrape timeseries Novel Coronavirus (COVID-19) Cases, provided by JHU CSSE"
+author: "Jawaid Hakim"
+date: "`r Sys.Date()`"
+output:
+  
+  html_document:
+    
+    toc: true
+    toc_float: true
+    number_sections: true
+  pdf_document: 
+    toc: true
+    number_sections: true
+boxlinks: true
+urlcolor: blue
+always_allow_html: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load library
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+source("./Consts.R")
+source("./FilePaths.R")
+```
+
+# Generate list of data to be processed
+
+# Setup parallel processing
+
+```{r}
+library(doParallel)
+library(parallel)
+```
+
+```{r par-time-series-scraper}
+GetStatsType <- function(targetUrl) {
+    library(assertive)
+    
+    ts_type <- NULL
+    if (str_detect(targetUrl, "deaths")) {
+        ts_type <- 'deaths'
+    }
+    else {
+        if (str_detect(targetUrl, "confirmed")) {
+            ts_type <- 'confirmed'
+        }
+    }
+    
+    assert_is_not_null(ts_type)
+    
+    return (ts_type)
+}
+
+ReadStats <- function(targetUrl) {
+    
+    # need to load libraries on cluster nodes
+    library(readr)
+
+    stats_tbl <- readr::read_csv(file = targetUrl)
+    
+    return (stats_tbl)    
+}
+
+ScrapeStats <- function(...) {
+    source("./FilePaths.R")
+    source("./TimeSeries_CleanStatsTable.R")
+    
+    # need to load libraries on cluster nodes
+    library(tidyverse)
+    
+    # get work
+    url_index <- (...)
+    targetUrl <- pluck(tbl_href['raw_href'], 1, url_index)
+    
+    is_global_data <- str_detect(targetUrl, pattern = "_global")
+ 
+       # read and clean data
+    tsTbl <- ReadStats(targetUrl = targetUrl)
+    cleanedTbl <- TimeSeries.CleanTable(tsTbl = tsTbl, global = is_global_data)
+    
+    # build output file path
+    ts_type <- GetStatsType(targetUrl = targetUrl)
+    path <-
+        Output.GetTimeSeriesFilePath(ts_type = ts_type, global = is_global_data)
+
+    # # save data
+    write_csv(cleanedTbl, file = path, quote = 'needed')
+    return (url_index)
+}
+```
+
+Source local cluster functions.
+
+```{r source-cluster-functions}
+source("./LocalClusterFunctions.R")
+```
+
+Start cluster
+```{r start-cluster}
+cr <- Cluster.Start()
+```
+
+Build list of URLs to be processed
+```{r}
+tbl_href <- tibble(raw_href = c(URL.TS.US.CONFIRMED, URL.TS.US.DEATHS, URL.TS.GLOBAL.CONFIRMED, URL.TS.GLOBAL.DEATHS))
+tbl_href
+```
+
+Generate sequence id for all URLs. Each work item - i.e. URL to be processed - will be accessed by it's index in `tbl_href` table.
+
+```{r generate-url-id}
+seq_id <- seq(from = 1, length.out = NROW(tbl_href))
+glimpse(seq_id)
+```
+
+Export namespace to cluster nodes
+```{r export-namespace}
+# Since functions will be run on cluster nodes, need to export namespace
+Cluster.ExportNamespace(cr, list('ScrapeStats', 'ReadStats', 'GetStatsType', 'tbl_href'))
+```
+
+Process URLs using cluster (map/reduce)
+```{r par-process}
+work_results <- NULL
+system.time(work_results <-
+                Cluster.ParApply(cr, seq_id, ScrapeStats))
+unlist(work_results)
+```
+
+Stop  cluster
+```{r stop-cluster}
+Cluster.Stop(cr)
+
+```

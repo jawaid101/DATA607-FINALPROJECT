@@ -1,28 +1,6 @@
-CleanTSTable <- function(tsTbl) {
-    cleanedTbl <- tsTbl |>
-        mutate(across(contains(c("Lat", "Long")), as.integer)) |>
-        mutate(across(contains(
-            c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
-        ), as.numeric)) #|>
-     return (cleanedTbl)
-}
+library(tidyverse)
 
-CleanTSTable.Global <- function(tsTbl) {
-    cleanedTbl <- CleanTSTable(tsTbl = tsTbl)
-    return (cleanedTbl)
-}
-
-CleanTSTable.USA <- function(tsTbl) {
-    
-    cleanedTbl <- CleanTSTable(tsTbl = tsTbl)
-    
-    cleanedTbl <- cleanedTbl |>
-        mutate(across(contains(c("Combined, Population")), as.numeric))
-    
-    return (cleanedTbl)
-}
-
-CleanStatsTable <- function(statsTbl) {
+DailyData.CleanStatsTable <- function(statsTbl) {
     library(tidyverse)
 
     # change column types
@@ -44,10 +22,10 @@ CleanStatsTable <- function(statsTbl) {
 # Returns:
 #   Cleaned stats table
 #
-CleanStatsTable.USA <- function(statsTbl) {
+DailyData.CleanStatsTable.USA <- function(statsTbl) {
     library(tidyverse)
     
-    cleanedTbl <- CleanStatsTable(statsTbl = statsTbl)
+    cleanedTbl <- DailyData.CleanDDStatsTable(statsTbl = statsTbl)
     cleanedTbl <- cleanedTbl |>
         mutate(across(contains(
             c(
@@ -70,10 +48,10 @@ CleanStatsTable.USA <- function(statsTbl) {
 # Returns:
 #   Cleaned stats table
 #
-CleanStatsTable.Global <- function(statsTbl) {
+DailyData.CleanStatsTable.Global <- function(statsTbl) {
     library(tidyverse)
     
-    cleanedTbl <- CleanStatsTable(statsTbl = statsTbl)
+    cleanedTbl <- DailyData.CleanStatsTable(statsTbl = statsTbl)
     return (cleanedTbl)    
 }
 
