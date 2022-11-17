@@ -186,7 +186,7 @@ library(ggplot2)
 library(plotly)
 ```
 
-Run usual R workflows against dataset, no change to syntax but data is in cluster.
+Run usual R workflows against dataset, no change to syntax but data is in cluster. Some change
 
 ```{r}
 library(leaflet)
@@ -208,7 +208,7 @@ if (is_global_data) {
         #leaflet::addTiles() |>
         #addProviderTiles(providers$Stamen.Toner) |>
         #addProviderTiles(providers$CartoDB.Positron) |>
-        #addProviderTiles(providers$Esri.NatGeoWorldMap, options = providerTileOptions(opacity = 0.85)) |>
+        # addProviderTiles(providers$Esri.NatGeoWorldMap, options = providerTileOptions(opacity = 0.85)) |>
         addProviderTiles(providers$Stamen.TonerLite) |>
         leaflet::addCircleMarkers(
             lng = ~ Long,
