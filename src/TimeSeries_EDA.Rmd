@@ -195,15 +195,16 @@ library(leaflet.providers)
 ```
 
 ```{r}
-df1 <- Truncate(df, is_global_data)
-df1
+truncated_df <- Truncate(df, is_global_data)
+truncated_df
 ```
+
 
 ```{r display-global-map}
 
 m <- NULL
 if (is_global_data) {
-    leaflet_map <- leaflet::leaflet(df1) %>%
+    leaflet_map <- leaflet::leaflet(truncated_df) %>%
         #leaflet::addTiles() |>
         #addProviderTiles(providers$Stamen.Toner) |>
         #addProviderTiles(providers$CartoDB.Positron) |>
