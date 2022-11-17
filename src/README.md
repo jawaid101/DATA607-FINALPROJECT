@@ -1,10 +1,15 @@
 # R source
 
-1. Constants.R - constant definitions
+1. Consts.R - constants defined
 2. FilePaths.R - misc file paths for input/output
-3. ExtractUrl.Rmd - script to extract and save URLs that need to be processed for daily data (not timeseries). Using Selenium for web scraping and Parallel for local cluster
-4. SparkFunctions.R - functions for working with local Spark installation
-5. ClearStatsTable.R - functions for cleaning up scraped stats tables (change column type, etc.)
-6. LocalClusterFunctions.R - functions for managing local cluster for parallel processing
-7. NovelCoronavirusCases.Rmd - extracts daily and timeseries data. For daily data, before running this script the Extract.Rmd must be run
-
+3. SparkFunctions.R - functions for working with local Spark installation
+4. LocalClusterFunctions.R - functions for managing local cluster for parallel processing
+5. GithubAuth.Rmd - Github enforces rate limits (surprise!). This script used Oauth to authenticate with Github since authenticated users get higher limits
+6. DailyData
+  > - DailyData_ExtractUrl.Rmd - script to extract and save daily data URLs that need to be processed for daily data (not timeseries). Using Selenium for web scraping and Parallel for local cluster
+  > - DailyData_Scrape.Rmd - script to download daily data. Using Selenium for web scraping and Parallel for local cluster
+  > - DailyDaya_CleanStatsTable.R - functions for cleaning up scraped stats tables (change column type, etc.)
+7. Timeseries
+  > - TimeSeries_Scrape.Rmd - script to download timeseries. Using Selenium for web scraping and Parallel for local cluster
+  > - TimeSeries_CleanStatsTable.R - functions for cleaning up timeseries tables (change column type, etc.)
+8. Rplot.png - sample EDA plot
