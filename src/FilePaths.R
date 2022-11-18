@@ -96,3 +96,22 @@ Output.GetTimeSeriesFilePath <- function(ts_type, global) {
     return (path)
 }
 
+#
+# Get full path to our-world-in-data data.
+#
+Output.GetOurWorldInDataFilePath <- function() {
+    source('./Consts.R')
+    
+    file_name <- FILE.OUR_WORLD_IN_DATA
+    path <- paste0(DB.OUR_WORLD_IN_DATA_PATH, file_name)
+    return (path)
+}
+
+Output.GetCountryLatLongFilePath <- function() {
+    source('./Consts.R')
+    
+    file_name <- FILE.COUNTRY_LAT_LONG
+    path <- paste0(DB.OUR_WORLD_IN_DATA_PATH, file_name)
+    return (path)
+}
+
