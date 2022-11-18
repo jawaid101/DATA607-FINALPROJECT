@@ -9,11 +9,14 @@
         |    |── face-covering-policies-covid.csv
         |── processed          # processed data
         |    |── README.md     
-        |    |── timeseries    # timerseries data
+        |    |── timeseries    # JHU timerseries data
         |    |    |── time_series_covia19_deaths_US.csv      # US deaths
         |    |    |── time_series_covia19_deaths_global.csv  # Global deaths
         |    |    |── time_series_covia19_confirmed_US.csv   # US confirmed cases
-        |    |    |── time_series_covia19_confirmed_US.csv   # Global confirmed cases   
+        |    |    |── time_series_covia19_confirmed_US.csv   # Global confirmed cases
+        |    |── owid         # Our World in Data
+        |    |    |── country_lat_long.csv      # Count latitude/longitude data
+        |    |    |── owid-covid-data.csv      # Global COVID deaths
         |    |── README.md       
         |    |── 2019.         # Daily date - hierarchical folders for easy Spark loading: ./processed/[YEAR]/[MONTH]/
         |    |    |── JAN
