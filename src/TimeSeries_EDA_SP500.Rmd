@@ -54,10 +54,9 @@ source("./TimeSeries_CleanStatsTable.R")
 #
 # Parameters:
 #   ts_type: c('deaths', 'confirmed')
-#   truncate: TRUE to keep only latest data per Country/State
 #   global: TRUE for global dataset, FALSE for USA (default)
 #   verbose: TRUE to print progress
-LoadTimeSeriesDataset <- function(ts_type, truncate = FALSE, global = FALSE, verbose = TRUE) {
+LoadTimeSeriesDataset <- function(ts_type, global = FALSE, verbose = TRUE) {
     file_name <-
         Output.GetTimeSeriesFileName(ts_type = ts_type, global = global)
     
@@ -67,6 +66,17 @@ LoadTimeSeriesDataset <- function(ts_type, truncate = FALSE, global = FALSE, ver
         paste0(cwd, "/../data/processed/timeseries/", file_name)
     df <- readr::read_csv(file = file_path, col_names = TRUE)
     
+    df <- Tidy_Longer(ts_type, global, df)
+    
+    df <- AddScaledDeaths(ts_type = ts_type, df = df)
+
+    # sort by date
+    df <- df |> arrange(date)
+    return (df)
+}
+
+Tidy_Longer <- function(ts_type, global, df) {
+    
     # replace backslash chars (backslash not handles well by Spark)
     df <- rename(df, 'Province_State' = 'Province/State')
     df <- rename(df, 'Country_Region' = 'Country/Region')
@@ -75,20 +85,28 @@ LoadTimeSeriesDataset <- function(ts_type, truncate = FALSE, global = FALSE, ver
     df <- df |>
         pivot_longer(contains('/'), names_to = 'date', values_to = ts_type)
     
-    # mutate date type
     df <- df |>
         mutate(date = as.Date(date, format = '%m/%d/%y')) 
-    
     df$year = format(df$date, '%Y')
     df$month = format(df$date, '%m')
     df$day = format(df$date, '%d')
-    
-    # keep only latest data? if so only keep last row
 
-    if (truncate) {
-        df <- Truncate(df, global = global)
+    if (global) {
+        df <- df |> 
+            mutate(prev = lag(deaths, order_by = Country_Region)) |> 
+            mutate(deaths_lagged = ifelse(deaths > prev, deaths - prev, NA)) |> 
+            select(-prev)
+    } else {
+        df <- df |> 
+            mutate(prev = lag(deaths, order_by = Province_State)) |> 
+            mutate(deaths_lagged = ifelse(deaths > prev, deaths - prev, NA)) |> 
+            select(-prev)
     }
+    
+    return (df)    
+}
 
+AddScaledDeaths <- function(ts_type, df) {
     # add scaled variable for plotting purposes
     if (ts_type == 'deaths') {
         max_deaths <- max(df$deaths)
@@ -99,12 +117,8 @@ LoadTimeSeriesDataset <- function(ts_type, truncate = FALSE, global = FALSE, ver
         df <- df |> 
             mutate(scaled_var = confirmed / max_confirmed)
     }
-    
-    # sort by date
-    df <- df |> arrange(date)
     return (df)
 }
-
 
 #
 # Truncate data. For each Country/Province (global) or Province/State  (USA) keep latest observation,
@@ -317,32 +331,55 @@ p <-
 ggplotly(p)
 ```
 
+```{r}
+# plot data
+p <-
+    df |> filter(Country_Region %in% c('Germany', 'US', 'India', 'Russia')) |>
+    arrange(date) |>
+    ggplot(aes(x = date, y = deaths_lagged, color = Country_Region)) +
+    geom_line(size = 0.5) +
+    scale_x_date(
+        date_breaks = "1 year",
+        date_minor_breaks = '1 month',
+        date_labels = "%Y"
+    ) +
+    scale_y_log10() +
+    #scale_y_continuous(limits = c(0, 20000),
+    #                   labels = scales::label_comma()) +
+    labs(
+        title = "Daily COVID Deaths",
+        subtitle = "2020 - 2023",
+        caption = "source: JHU",
+        y = "Deaths"
+    ) +
+    theme_minimal()
+ggplotly(p)
+```
+
 
 ```{r}
-# Most basic bubble plot
-df_yearly <- Truncate(df, keep_type = '4 month', is_global_data)
-df_yearly
+library(lubridate)
+p <- df |> filter(Country_Region %in% c("US", 'India', 'Germany')) |>
+    ggplot( aes(x = date, y = deaths_lagged, color = Country_Region)) + 
+  geom_line() +
+  labs(
+    title = paste0("Daily COVID Deaths (", 
+                   year(min(df$date)), ' - ',
+                   year(max(df$date)), ")"
+    ),
+    x = "Time", 
+    y = "Daily Deaths",
+    caption = "Data from JHU <https://finance.yahoo.com/>") + 
+  theme_light() + 
+  scale_y_log10() 
 
-p <-
-    df_yearly |> filter(Country_Region %in% c('Germany', 'US', 'India', 'Russia')) |>
-    arrange(desc(date)) %>%
-    ggplot(aes(
-        x = date,
-        y = deaths,
-        size = scaled_var,
-        color = Country_Region
-    )) +
-    geom_point(alpha = 0.5) +
-    scale_size(range = c(.1, 24), name = "Population (M)")
-ggplotly(p)
+p
 ```
 
 Bring in S&P 500 data
 
 ```{r}
 library(yfR)
-library(lubridate) # for date manipulations
-library(dplyr) # for data manipulations
 
 # set options for algorithm
 my_ticker <- '^GSPC'
@@ -390,6 +427,10 @@ p
 group_df <- df |> filter(Country_Region == 'US')
 group_covid_sp <- left_join(group_df, covid_df_yr, by = c('date' = 'ref_date'))
 group_covid_sp
+```
+
+```{r}
+lm(group_covid_sp$price_adjusted ~ group_covid_sp$deaths_lagged)
 ```
 
 ```{r}
