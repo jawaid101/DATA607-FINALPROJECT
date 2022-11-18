@@ -236,17 +236,19 @@ library(leaflet.providers)
 ```{r}
 df_latest <- Truncate(df, keep_type = 'last', is_global_data)
 df_latest
+
 ```
 
 
 ```{r display-global-map}
 m <- NULL
 leaflet_map <- leaflet::leaflet(df_latest) %>%
-    #leaflet::addTiles() |>
+    leaflet::addTiles() |>
+    #setView(lng = --2, lat = 54, zoom = 2.1) |>
     #addProviderTiles(providers$Stamen.Toner) |>
     #addProviderTiles(providers$CartoDB.Positron) |>
-    # addProviderTiles(providers$Esri.NatGeoWorldMap, options = providerTileOptions(opacity = 0.85)) |>
-    addProviderTiles(providers$Stamen.TonerLite) |>
+    # addProviderTiles(providers$Esri.NatGeoWorldMap, options =      # providerTileOptions(opacity = 0.85)) |>
+    #addProviderTiles(providers$Stamen.TonerLite) |>
     leaflet::addCircleMarkers(
         lng = ~ Longitude,
         lat = ~ Latitude,
@@ -262,53 +264,54 @@ leaflet_map <- leaflet::leaflet(df_latest) %>%
 leaflet_map  # Print the map
 ```
 
+```{r}
+set.seed(1234)
+
+```
+
 
 ```{r}
 # plot data
+rnd_locations <- sample(df$location, 10)
+
 p <-
-    df |> filter(Country_Region %in% c('Germany', 'US', 'India', 'Russia')) |>
+    df |> filter(location %in% rnd_locations) |>
     arrange(date) |>
-    ggplot(aes(x = date, y = deaths, color = Country_Region)) +
+    ggplot(aes(x = date, y = total_deaths_per_million, color = location)) +
     geom_line(size = 0.5) +
     scale_x_date(
         date_breaks = "1 year",
         date_minor_breaks = '1 month',
         date_labels = "%Y"
     ) +
-    scale_y_continuous(limits = c(0, 1000000),
+    scale_y_continuous(limits = c(0, 5000),
                        labels = scales::label_comma()) +
     labs(
-        title = "COVID Deaths",
+        title = "COVID Deaths Per Million",
         subtitle = "2020 - 2023",
-        caption = "source: JHU",
+        caption = "source: Our World In Data",
         y = "Deaths"
     ) +
     theme_minimal()
 ggplotly(p)
 ```
 
+
 ```{r}
 # plot data
-p <-
-    df |> filter(Country_Region %in% c('Germany', 'US', 'India', 'Russia')) |>
-    arrange(date) |>
-    ggplot(aes(x = date, y = deaths_lagged, color = Country_Region)) +
-    geom_line(size = 0.5) +
-    scale_x_date(
-        date_breaks = "1 year",
-        date_minor_breaks = '1 month',
-        date_labels = "%Y"
-    ) +
-    scale_y_log10() +
-    #scale_y_continuous(limits = c(0, 20000),
-    #                   labels = scales::label_comma()) +
-    labs(
-        title = "Daily COVID Deaths",
-        subtitle = "2020 - 2023",
-        caption = "source: JHU",
-        y = "Deaths"
-    ) +
-    theme_minimal()
+df_quarter <- Truncate(df, keep_type = '3 month', is_global_data)
+df_quarter
+
+rnd_locations <- sample(df$location, 20)
+
+# load ggplot2
+library(hrbrthemes)
+
+# A basic scatterplot with color depending on Species
+p <- df_latest |> #filter(location %in% rnd_locations) |>
+    ggplot(aes(x=gdp_per_capita, y=total_deaths_per_million, color=location)) + 
+    geom_point() +
+    theme_ipsum()
 ggplotly(p)
 ```
 
