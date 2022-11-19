@@ -1,10 +1,14 @@
 # Overview
 
-This project will acquire and assess Covid-19 rates using data compiled by [Our World In Data](https://github.com/owid/covid-19-data), through web scraping using the selenium package in R, and parallel processing via a Spark cluster. We are currently exploring additional datasets to complement our primary data to determine a) interesting relationships that we can tie to covid rates, for example the presence/effect of face mask policies on covid rates, or the S&P 500 over time, and b) whether to focus our analysis on the United States (state-to-state), or the World (country-to-country). These determinations on supplementary data sets will drive the project analysis.
+This project will acquire and assess Covid-19 rates using data compiled by [Our World In Data](https://github.com/owid/covid-19-data), through web scraping using the selenium package in R, and parallel processing via a Spark cluster. We are currently exploring additional datasets to complement our primary data to determine:
 
-### Data Acquisition
+1. interesting relationships that we can tie to covid rates, for example the presence/effect of face mask policies on covid rates, or the S&P 500 indexx over time 
+2. whether to focus our analysis on the United States (state-to-state), or the World (country-to-country)
 
-#### Datasets (so far)
+These determinations on supplementary data sets will drive the project analysis.
+
+----
+### Datasets (so far)
 
 We started with the [JHU CSSE Novel Coronavirus (COVID-19) Daily Data](https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_daily_reports_us). After successul extraction of the daily data, we added [JHU CSSE timeseries](https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series) and [Our World In Data](https://ourworldindata.org/coronavirus) to the data extraction pipeline. 
 
@@ -12,7 +16,7 @@ During this data acquisition journey we built a set of common data extraction sc
 
 One issue we came across was with Github API [rate limits](https://docs.github.com/en/rest/overview/resources-in-the-rest-api#rate-limiting). To get around this we implemented [OAuth authentication](https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps) to access Github via a personal account which enables higher limits.
 
-#### Tech stack (so far)
+### Tech stack (so far)
 
 1. **Rselenium** - chosen for it's [headless browser](https://cran.r-project.org/web/packages/RSelenium/RSelenium.pdf) capability for getting around potential issues with embedded JavaScript. Used to extract daily data URLs
 2. **parallel** - chosen for efficiently processing remote data files using a local cluster. Used for all 3 data sets
