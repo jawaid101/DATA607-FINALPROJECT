@@ -18,6 +18,6 @@ One issue we came across was with Github API [rate limits](https://docs.github.c
 2. **parallel** - chosen for efficiently processing remote data files using a local cluster. Used for all 3 data sets
 3. **readr** - reading remote CSVs
 4. **Spark/sparklr** - chosen as a proof-of-concept for efficiently performing EDAs on large datasets in a (local) Spark cluster. Unfortunately, cloud based Spark services are either fee-based or time-limited
-5. **AWS S3** - we are looking into storing datasets on AWS S3 to leverage Spark's built-in S3 connector. However, AWS S3 storage is rate-limited that may make this impractical (20,000 GET Requests; 2,000 PUT, COPY, POST, or LIST Requests each month)
+5. **AWS S3** - we are looking into storing datasets on AWS S3 and leverage Spark's built-in S3 connector. However, S3 storage rate-limits may make this impractical (20,000 GET Requests; 2,000 PUT, COPY, POST, or LIST Requests each month)
 
 
