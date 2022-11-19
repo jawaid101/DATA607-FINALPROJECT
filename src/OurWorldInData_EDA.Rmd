@@ -296,44 +296,26 @@ p <-
 ggplotly(p)
 ```
 
-
 ```{r}
 # plot data
-df_quarter <- Truncate(df, keep_type = '3 month', is_global_data)
-df_quarter
+locations <- c('Germany', 'United Kingdom', 'United States', 'Japan', 'Canada', 'India')
 
-rnd_locations <- sample(df$location, 20)
-
-# load ggplot2
-library(hrbrthemes)
-
-# A basic scatterplot with color depending on Species
-p <- df_latest |> #filter(location %in% rnd_locations) |>
-    ggplot(aes(x=gdp_per_capita, y=total_deaths_per_million, color=location)) + 
-    geom_point() +
-    theme_ipsum()
+p <-
+    df |> 
+    filter(location %in% locations) |>
+    filter(! is.na(excess_mortality)) |>
+    ggplot(aes(x = date, y = excess_mortality_cumulative_per_million, color = location)) +
+    geom_line(size = 0.5) +
+    labs(
+        title = "Excess mortality: Cumulative number of deaths from all causes compared to projection based on
+previous years, per million people",
+        subtitle = "2020 - 2023",
+        caption = "source: Our World In Data"
+    ) +
+    theme_minimal()
 ggplotly(p)
 ```
 
-
-```{r}
-library(lubridate)
-p <- df |> filter(Country_Region %in% c("US", 'India', 'Germany')) |>
-    ggplot( aes(x = date, y = deaths_lagged, color = Country_Region)) + 
-  geom_line() +
-  labs(
-    title = paste0("Daily COVID Deaths (", 
-                   year(min(df$date)), ' - ',
-                   year(max(df$date)), ")"
-    ),
-    x = "Time", 
-    y = "Daily Deaths",
-    caption = "Data from JHU <https://finance.yahoo.com/>") + 
-  theme_light() + 
-  scale_y_log10() 
-
-p
-```
 
 Bring in S&P 500 data
 
@@ -383,13 +365,9 @@ p
 ```
 
 ```{r}
-group_df <- df |> filter(Country_Region == 'US')
+group_df <- df |> filter(location == 'United States') 
 group_covid_sp <- left_join(group_df, covid_df_yr, by = c('date' = 'ref_date'))
 group_covid_sp
-```
-
-```{r}
-lm(group_covid_sp$price_adjusted ~ group_covid_sp$deaths_lagged)
 ```
 
 ```{r}
