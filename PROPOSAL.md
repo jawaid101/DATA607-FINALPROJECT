@@ -2,7 +2,7 @@
 
 This project will acquire and assess Covid-19 rates using data compiled by [Our World In Data](https://github.com/owid/covid-19-data), through web scraping using the selenium package in R, and parallel processing via a Spark cluster. We are currently exploring additional datasets to complement our primary data to determine:
 
-1. interesting relationships that we can tie to covid rates, for example the presence/effect of face mask policies on covid rates, or the S&P 500 indexx over time 
+1. interesting relationships that we can tie to covid rates, for example the presence/effect of face mask policies on covid rates, or the S&P 500 index over time 
 2. whether to focus our analysis on the United States (state-to-state), or the World (country-to-country)
 
 These determinations on supplementary data sets will drive the project analysis.
