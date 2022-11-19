@@ -10,7 +10,7 @@ We started with the [JHU CSSE Novel Coronavirus (COVID-19) Daily Data](https://g
 
 During this data acquisition journey we built a set of common data extraction scripts/functions that were leveraged across all datasets. 
 
-One issue we came across was with Github API [rate limits](https://docs.github.com/en/rest/overview/resources-in-the-rest-api#rate-limiting). To get around this we implemented OAuth authentication to access Github via a personal account which has higher limits.
+One issue we came across was with Github API [rate limits](https://docs.github.com/en/rest/overview/resources-in-the-rest-api#rate-limiting). To get around this we implemented [OAuth authentication](https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps) to access Github via a personal account which has higher limits.
 
 #### Tech stack (so far)
 
