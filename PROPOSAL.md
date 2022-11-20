@@ -12,9 +12,11 @@ These determinations on supplementary data sets will drive the project analysis.
 
 We started with the [JHU CSSE Novel Coronavirus (COVID-19) Daily Data](https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_daily_reports_us). After successul extraction of the daily data, we added [JHU CSSE timeseries](https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series) and [Our World In Data](https://ourworldindata.org/coronavirus) to the data extraction pipeline. 
 
-During this data acquisition journey we built a set of common data extraction scripts/functions that were leveraged across all datasets. 
 
-One issue we came across was with Github API [rate limits](https://docs.github.com/en/rest/overview/resources-in-the-rest-api#rate-limiting). To get around this we implemented [OAuth authentication](https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps) to access Github via a personal account which enables higher limits.
+> Milestones:
+> 1. During this data acquisition journey we built a set of common data extraction scripts/functions that were leveraged across all datasets. 
+> 2. Github API [rate limits](https://docs.github.com/en/rest/overview/resources-in-the-rest-api#rate-limiting). To get around rate limits we implemented [OAuth authentication](https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps) to access Github via a personal account which enables higher limits
+> 3. Latitude/Longitude - OWID dataset did not provide Longitude/Latitude which will come in handy for map plots. So we downloaded [country lat/long](https://github.com/himalayahall/DATA607-FINALPROJECT/blob/d1c9cf23dce07ccdacfe4828a35c40c3e1badb8a/data/processed/owid/country_lat_long.csv dataset and (left-)joined with the OWID dataset.
 
 ### Tech stack (so far)
 
